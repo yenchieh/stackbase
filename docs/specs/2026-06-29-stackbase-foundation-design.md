@@ -101,12 +101,31 @@ docker_build('stackbase/frontend', 'services/frontend',
 k8s_yaml(kustomize('infra/k8s/overlays/local'))
 ```
 
-- **Go**: edit `.go` → Tilt syncs → in-pod CompileDaemon `go build` + restart (seconds).
+- **Go hot-reloads like Vue does** (not "rebuild on apply"): edit `.go` → Tilt
+  syncs → in-pod CompileDaemon `go build` + restart (seconds). This is a hard
+  requirement — both languages live-reload on save with zero manual steps.
 - **Vue**: edit `src/` → Tilt syncs `src/` only → Vite HMR (~1s). Because the sync
   is path-scoped to `src/`, `node_modules` is never synced → **no musl emptyDir
   workaround, no hostPath**.
 - Tilt pushes images to the MicroK8s registry (`default_registry('localhost:32000')`).
 - `*.test` routing stays via Caddy + Traefik; Tilt does not own routing.
+
+### Dev-loop boundary — what's automatic vs a `make` target
+
+| Change                          | How it applies                                  |
+|---------------------------------|-------------------------------------------------|
+| Go source / Vue source          | **Automatic** live-reload (Tilt sync, no apply) |
+| k8s manifests / ConfigMaps      | **Automatic** re-apply by Tilt while `tilt up` runs (`k8s_yaml` is watched) |
+| Secrets (out-of-band)           | **Manual** → `make secrets-apply`               |
+| Prod deploy                     | **Manual** → `make deploy`                       |
+
+Secrets are the only routinely-manual local step: they're built from a gitignored
+`secrets.env` and never live in the git manifests, so Tilt can't watch them.
+
+> Decision knob: keeping `k8s_yaml` **watched** means manifest edits also apply
+> automatically during dev (less manual than the original "config needs apply"
+> ask). If explicit control over manifest applies is preferred, mark `k8s_yaml`
+> non-watched and use `make apply` for every manifest change. Default: watched.
 
 ## Prod path
 
@@ -116,6 +135,20 @@ k8s_yaml(kustomize('infra/k8s/overlays/local'))
 `kustomize build infra/k8s/overlays/prod | kubectl apply -f -`. Identical base
 manifests local↔prod is the parity guarantee. (Building/pushing images in CI is
 Phase 2; the overlay is hand-deployable now.)
+
+## Makefile (the manual steps live here, nowhere else)
+
+Code never needs a `make` target — Tilt handles it. The Makefile wraps only the
+`kubectl`-touching steps so adopters never type raw `kubectl`:
+
+| Target              | Does                                                              |
+|---------------------|------------------------------------------------------------------|
+| `make up`           | `tilt up` (the dev loop: build, deploy, live-reload Go + Vue)     |
+| `make down`         | `tilt down`                                                       |
+| `make secrets-apply`| build the local Secret from `secrets.env` (`kubectl create secret … --dry-run \| apply`) |
+| `make apply`        | one-shot `kustomize build overlays/local \| kubectl apply` (no-Tilt case) |
+| `make deploy`       | `kustomize build overlays/prod \| kubectl apply` + prod secrets   |
+| `make migrate`      | delete + re-run the migrate Job (immutable Job footgun)           |
 
 ## App skeleton (Go `api`)
 
