@@ -40,9 +40,9 @@ adopt.
 into the running pod** (no hostPath, relative paths → portable) and runs an
 in-pod rebuild. It owns build → cluster-load → live-update with a UI.
 
-**Tilt replaces only build + sync + deploy. Routing is unchanged:** Traefik
-in-cluster + a host Caddy fronting `:80` → per-project Traefik NodePort →
-`*.test`. That setup is a feature the author likes and we keep it verbatim.
+**Tilt replaces only build + sync + deploy, not routing.** Routing is handled by a
+single **shared** cluster Traefik (see the Ingress section) — not Tilt port-forwards,
+and not the old per-project Traefik + Caddy setup, which this design retires.
 
 ---
 
@@ -63,16 +63,21 @@ stackbase/
       src/analytics.ts        # env-gated umami snippet
       Dockerfile              # prod: vite build -> nginx
       Dockerfile.dev          # vite dev server
-  infra/k8s/
-    base/                     # namespace, api, frontend, postgres (StatefulSet),
-                              #   migrate Job, Traefik IngressRoute
-    overlays/
-      local/                  # :dev images -> localhost:32000 ; Caddy/*.test
-      prod/                   # :latest GHCR images, imagePullPolicy Always, secret refs
-    shared/umami/             # OPTIONAL one-per-machine umami install (its own Postgres)
+  infra/
+    cluster/                  # ONE-TIME per machine/cluster (make cluster-init):
+      traefik/                #   ONE shared Traefik (ns=ingress, hostPort 80/443,
+                              #   kubernetescrd watching ALL namespaces)
+      dnsmasq.md              #   *.test -> 127.0.0.1 wildcard (one line)
+    k8s/
+      base/                   # namespace, api, frontend, postgres (StatefulSet),
+                              #   migrate Job, IngressRoute  (NO Traefik Deployment —
+                              #   the controller is shared cluster infra, above)
+      overlays/
+        local/                # :dev images -> localhost:32000
+        prod/                 # :latest GHCR images, imagePullPolicy Always, secret refs
+      shared/umami/           # OPTIONAL one-per-machine umami install (its own Postgres)
   db/migrations/0001_init.sql
   Tiltfile
-  Caddyfile                   # *.test -> traefik NodePort
   Makefile
   .env.example
   README.md                   # "adopt this" instructions
@@ -108,7 +113,8 @@ k8s_yaml(kustomize('infra/k8s/overlays/local'))
   is path-scoped to `src/`, `node_modules` is never synced → **no musl emptyDir
   workaround, no hostPath**.
 - Tilt pushes images to the MicroK8s registry (`default_registry('localhost:32000')`).
-- `*.test` routing stays via Caddy + Traefik; Tilt does not own routing.
+- `*.test` routing via the **shared** cluster Traefik (see Ingress section); Tilt does
+  not own routing. No Caddy, no NodePort.
 
 ### Dev-loop boundary — what's automatic vs a `make` target
 
@@ -143,6 +149,7 @@ Code never needs a `make` target — Tilt handles it. The Makefile wraps only th
 
 | Target              | Does                                                              |
 |---------------------|------------------------------------------------------------------|
+| `make cluster-init` | **one-time per machine**: install the shared Traefik (`infra/cluster`) + print the dnsmasq `*.test` line. Idempotent. |
 | `make up`           | `tilt up` (the dev loop: build, deploy, live-reload Go + Vue)     |
 | `make down`         | `tilt down`                                                       |
 | `make secrets-apply`| build the local Secret from `secrets.env` (`kubectl create secret … --dry-run \| apply`) |
@@ -193,22 +200,45 @@ seeds one demo table. Migrations idempotent.
 > should generate the ConfigMap from a **glob** (or document the list-append loudly)
 > so adopters don't hit the same trap.
 
-## Routing & namespace conventions
+## Ingress — one shared Traefik, not one per project
 
-- One namespace per project (`namespace:` in the local/prod kustomization — one of
-  the two values an adopter changes).
-- Traefik `IngressRoute`: bare host `/` → frontend, `/api` → api.
-- Host Caddy maps `<project>.test` (+ `admin.<project>.test` when present) → that
-  project's Traefik NodePort. Adopters pick a free NodePort (documented list).
+The recurring multi-project pain (NodePort collisions, N Traefik pods fighting for
+hostPort 80, a host Caddy demuxing `*.test`) comes from running a Traefik **per
+project**. stackbase fixes it at the root: **the ingress controller is shared
+cluster infra, installed once; projects ship only an `IngressRoute` + a hostname.**
+
+- **`infra/cluster/traefik/`** — a SINGLE Traefik in namespace `ingress`, owning
+  **hostPort 80/443** directly, kubernetescrd provider watching **all namespaces**.
+  Applied once per machine via `make cluster-init`. Idempotent — every stackbase repo
+  ships an identical copy so any project can bootstrap the cluster; re-running is a
+  no-op re-apply.
+- **Per project**: `base/` contains only an `IngressRoute`
+  (``Host(`<name>.test`)``: `/` → frontend, `/api` → api). **No Traefik Deployment,
+  no Service NodePort, no Caddy.** The shared Traefik picks it up cross-namespace.
+- **DNS**: `*.test → 127.0.0.1` via a one-line dnsmasq wildcard
+  (`address=/test/127.0.0.1`). A new project needs **zero** DNS edits, ever.
+- **Subdomains** (`admin.<name>.test`) = one more match rule in the same IngressRoute.
+
+Net effect: adding a project = `kubectl apply` of its manifests (Tilt does this) —
+no port to claim, no Caddy to edit, no `/etc/hosts` line.
+
+**One namespace per project** (`namespace:` in the kustomization) and the
+`<name>.test` host are the **only two values** an adopter changes.
+
+**Prod** uses the same model — `make cluster-init` installs the shared Traefik on the
+prod cluster too. The single environment difference is entrypoint binding: hostPort
+80/443 locally; a NodePort or LoadBalancer in prod, per the cluster's front.
 
 ## Adoption flow (README)
 
-1. "Use this template" → new repo → `cd`.
-2. Set the two knobs: **project name/namespace** and **`<name>.test` host** (+ a
-   free NodePort). One `sed`/find-replace, documented.
-3. `cp .env.example .env`, fill R2 (+ optional umami) creds.
-4. `tilt up` → open `http://<name>.test`.
-5. Prod: fill `secrets.env`, `make deploy`.
+1. **One-time per machine**: `make cluster-init` (shared Traefik + `*.test` dnsmasq).
+   Only the first stackbase project on the box needs it; later projects skip it.
+2. "Use this template" → new repo → `cd`.
+3. Set the two knobs: **project name/namespace** and **`<name>.test` host**. One
+   find-replace, documented. (No NodePort, no Caddy edit, no `/etc/hosts`.)
+4. `cp .env.example .env`, fill R2 (+ optional umami) creds.
+5. `make up` → open `http://<name>.test`.
+6. Prod: `make cluster-init` on the prod cluster once, fill `secrets.env`, `make deploy`.
 
 ---
 
@@ -221,8 +251,13 @@ seeds one demo table. Migrations idempotent.
 - **CompileDaemon vs Tilt-native `run()`**: we keep CompileDaemon (author knows it,
   Dockerfile exists). If in-pod rebuild proves flaky under Tilt sync, fall back to
   Tilt-native `run('go build')` + container restart. Decide during the spike.
-- **NodePort coordination** across the author's existing projects (nursecall 31080,
-  manyi 31278, komiic 30080) — template should ship a documented "claim a port"
-  note, not auto-assign.
+- **Shared Traefik must watch all namespaces and own hostPort 80/443** — verify the
+  kubernetescrd provider has no namespace restriction, and that nothing else holds
+  `:80` (the old per-project Traefiks + Caddy must be gone first).
+- **Migrating existing projects** (nursecall 31080 / manyi 31278 / komiic 30080) off
+  their per-project Traefik+NodePort+Caddy setup onto the shared Traefik is a separate
+  cutover (free `:80`, stand up the shared Traefik, move each to IngressRoute-only,
+  retire the old Traefiks + Caddy). Out of scope for the Phase-1 template, but the
+  reason the template must model the shared pattern correctly from day one.
 - **gRPC topology** (Phase 2): Go↔Go internal vs connect/grpc-web to the browser —
   resolve when Phase 2 is specced.
