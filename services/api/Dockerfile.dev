@@ -1,0 +1,9 @@
+# Dev image: CompileDaemon rebuilds + restarts the server in-pod whenever Tilt
+# syncs changed source into /app. Proven by the Task-1 spike.
+FROM golang:1.26
+WORKDIR /app
+RUN go install github.com/githubnemo/CompileDaemon@latest
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+CMD ["CompileDaemon", "-build=go build -o /app/server ./cmd/server", "-command=/app/server", "-directory=/app"]

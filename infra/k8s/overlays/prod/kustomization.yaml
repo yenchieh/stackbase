@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Same base as local — that's the local==prod parity guarantee.
+namespace: stackbase
+
+resources:
+  - ../../base
+
+# Prod images: GHCR :latest (built/pushed in Phase-2 CI; hand-deployable now).
+images:
+  - name: stackbase-api
+    newName: ghcr.io/yenchieh/stackbase-api
+    newTag: latest
+  - name: stackbase-frontend
+    newName: ghcr.io/yenchieh/stackbase-frontend
+    newTag: latest
+
+# imagePullPolicy: Always so a :latest redeploy actually re-pulls. Targets the two
+# app Deployments (postgres is a StatefulSet on a pinned tag, left as-is).
+patches:
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Always
+
+# Adopter prod steps (not templated — too site-specific to guess):
+#   - point the IngressRoute Host() at the real domain (it ships as <name>.test)
+#   - add TLS (websecure entrypoint + your certResolver) if Traefik terminates it
+#   - secrets via `make secrets-apply` against the prod context; then `make migrate`

@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Knob #1: the project namespace (renames the Namespace object + stamps all resources).
+namespace: stackbase
+
+resources:
+  - ../../base
+
+# Local images: :dev tags in the MicroK8s registry. Tilt matches these names,
+# rebuilds, and overrides the tag with its own content hash.
+images:
+  - name: stackbase-api
+    newName: localhost:32000/stackbase-api
+    newTag: dev
+  - name: stackbase-frontend
+    newName: localhost:32000/stackbase-frontend
+    newTag: dev

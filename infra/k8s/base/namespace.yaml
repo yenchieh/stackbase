@@ -1,0 +1,6 @@
+# The project namespace. The overlay's `namespace:` field is the single knob an
+# adopter changes (it renames this object and stamps every resource).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stackbase

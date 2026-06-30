@@ -1,0 +1,48 @@
+# Migrate Job: waits for Postgres, then applies EVERY /migrations/*.sql in order.
+# The /migrations dir is a ConfigMap generated from a GLOB over db/migrations
+# (`kubectl create configmap migrations --from-file=db/migrations`, see `make
+# migrate`) — NOT a hand-maintained file list. That is the fix for the inherited
+# footgun where an explicit list silently dropped new migrations.
+#
+# Jobs are immutable, so re-running means delete + re-apply (`make migrate`).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: postgres:16   # for psql + pg_isready
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              until pg_isready -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do
+                echo "waiting for postgres..."; sleep 2
+              done
+              for f in /migrations/*.sql; do
+                echo ">> applying $f"
+                psql -v ON_ERROR_STOP=1 -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f "$f"
+              done
+              echo ">> migrations complete"
+          env:
+            - name: POSTGRES_USER
+              value: stackbase
+            - name: POSTGRES_DB
+              value: stackbase
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: postgres-password
+          volumeMounts:
+            - name: migrations
+              mountPath: /migrations
+      volumes:
+        - name: migrations
+          configMap:
+            name: migrations

@@ -1,5 +1,9 @@
 # stackbase — design
 
+> **⚠️ Amendment (2026-06-29): R2 object storage was DROPPED** by owner decision.
+> Ignore every R2 / `internal/r2` / `POST /uploads/presign` / direct-upload
+> reference below — none of it is built or planned. The rest of the design stands.
+
 A reusable, open-source **project foundation** for the author's stack:
 Go (HTTP + middleware, gRPC later) · Vue · Postgres · Cloudflare R2 ·
 umami analytics · MicroK8s local dev with hot reload · namespace-per-project ·

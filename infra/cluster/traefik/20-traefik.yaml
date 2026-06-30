@@ -1,0 +1,50 @@
+# Shared Traefik — the cluster's single ingress controller. Owns hostPort 80/443
+# on the node and routes by Host() across ALL namespaces (kubernetescrd provider,
+# no namespace restriction). Projects ship only an IngressRoute; nothing else.
+#
+# LOCAL (this file): hostPort 80/443 binds the node's :80/:443 directly.
+# PROD: drop the two `hostPort` lines and front it with a LoadBalancer Service
+# (MetalLB / cloud LB) — the rest of the Deployment is identical local↔prod.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik
+  namespace: ingress
+  labels:
+    app: traefik
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+    spec:
+      serviceAccountName: traefik
+      containers:
+        - name: traefik
+          image: traefik:v3.2
+          args:
+            - --providers.kubernetescrd=true        # watch IngressRoutes in ALL namespaces
+            - --entrypoints.web.address=:80
+            - --entrypoints.websecure.address=:443
+            - --log.level=INFO
+          ports:
+            - name: web
+              containerPort: 80
+              hostPort: 80
+            - name: websecure
+              containerPort: 443
+              hostPort: 443
+          readinessProbe:
+            tcpSocket:
+              port: web
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: web
+            initialDelaySeconds: 5
+            periodSeconds: 10

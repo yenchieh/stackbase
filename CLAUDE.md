@@ -43,8 +43,6 @@ nursing-call. Optimize every choice for "a fresh adopter clones it and it works.
 - **Same manifests local↔prod**: kustomize `base/` + `overlays/{local,prod}`. Local =
   `:dev` images → `localhost:32000` MicroK8s registry; prod = GHCR `:latest` +
   `imagePullPolicy: Always` + secret refs.
-- **R2 (object storage)**: `aws-sdk-go-v2` S3 client at `R2_ENDPOINT`; sample path =
-  **presigned PUT** (`POST /uploads/presign`), browser uploads direct to R2.
 - **umami (analytics)**: ONE shared install (`infra/k8s/shared/umami/`, its own small
   Postgres); Vue snippet env-gated on `VITE_UMAMI_*` (unset → no-op).
 - **Auth**: JWT-**validate** middleware only — the *pattern*, not a product. No users
@@ -70,7 +68,8 @@ If a spike fails, fix the **design (and the spec)** before building on it.
    namespaces through one Traefik on `:80`.
 
 Then: cluster bootstrap → Go `api` → Postgres + migrate → Vue → kustomize
-base+overlays/local → Tiltfile → R2 → umami → overlays/prod → Makefile + README.
+base+overlays/local → Tiltfile → umami → overlays/prod → Makefile + README.
+(R2 object storage was **dropped** — owner decision, 2026-06-29.)
 
 ## Conventions (inherited from nursing-call where battle-tested)
 

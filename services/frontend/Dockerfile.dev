@@ -1,0 +1,10 @@
+# Dev image: Vite dev server with HMR. Tilt syncs services/frontend/src into
+# /app/src (scoped to src/ so node_modules is never touched). host:true in
+# vite.config makes it listen on 0.0.0.0 for in-pod access.
+FROM node:22
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+EXPOSE 5173
+CMD ["npm", "run", "dev"]

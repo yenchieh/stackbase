@@ -1,0 +1,67 @@
+# umami's own small Postgres (separate from any project DB).
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: umami-db
+  labels:
+    app: umami-db
+spec:
+  clusterIP: None
+  selector:
+    app: umami-db
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: umami-db
+spec:
+  serviceName: umami-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: umami-db
+  template:
+    metadata:
+      labels:
+        app: umami-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: umami
+            - name: POSTGRES_USER
+              value: umami
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: umami
+                  key: postgres-password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "umami", "-d", "umami"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: microk8s-hostpath
+        resources:
+          requests:
+            storage: 1Gi

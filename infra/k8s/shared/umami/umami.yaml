@@ -1,0 +1,65 @@
+# umami app. Builds DATABASE_URL from the secret password via k8s env-var
+# interpolation ($(DB_PASSWORD) must be declared before it). umami runs its own
+# schema migrations on startup — no separate migrate Job.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: umami
+  labels:
+    app: umami
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: umami
+  template:
+    metadata:
+      labels:
+        app: umami
+    spec:
+      containers:
+        - name: umami
+          image: ghcr.io/umami-software/umami:postgresql-latest   # pin to a version tag for prod
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: DATABASE_TYPE
+              value: postgresql
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: umami
+                  key: postgres-password
+            - name: DATABASE_URL
+              value: postgresql://umami:$(DB_PASSWORD)@umami-db:5432/umami
+            - name: APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: umami
+                  key: app-secret
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: umami
+spec:
+  selector:
+    app: umami
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http

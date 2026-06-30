@@ -1,0 +1,6 @@
+# Shared umami lives in its own namespace, installed ONCE per cluster (not per
+# project). Every project registers as a separate "website" in this one umami.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: umami
