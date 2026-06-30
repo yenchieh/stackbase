@@ -73,6 +73,15 @@ base+overlays/local → Tiltfile → umami → overlays/prod → Makefile + READ
 
 ## Conventions (inherited from nursing-call where battle-tested)
 
+- **Validate infra changes** with `kustomize build overlays/<env>` + `kubectl apply
+  --dry-run=server` (pre-create the namespace it targets — base references it); for a
+  live check, deploy to a **throwaway namespace** then delete it.
+- **Image-name wiring**: `base/` uses bare image names; `overlays/local` rewrites to
+  `localhost:32000/<svc>:dev` and the Tiltfile's `docker_build` targets that same full
+  name (NO `default_registry`). Change all three together.
+- **Go TDD here**: stub the impl so RED is an *assertion* failure, not a compile error —
+  Go won't build a test with an undefined symbol, nor a stub with unused imports (drop
+  them until the real impl).
 - Go handlers return `writeJSONError(w, status, msg)` (→ `{"error": msg}`), not `http.Error`.
 - **Go↔Vue JSON boundary needs explicit snake_case `json:` tags.** Go's
   case-insensitive decode does NOT bridge `day_of_week`↔`DayOfWeek`; an untagged
@@ -102,5 +111,5 @@ is needed** on commits.
 - `make deploy` — prod `kustomize build overlays/prod | kubectl apply`
 - `make migrate` — delete + re-run the migrate Job (immutable Job footgun)
 
-Per-service checks without the cluster: `cd services/api && go build ./...` ·
-`cd services/frontend && npm run build`.
+Per-service checks without the cluster: `cd services/api && go test ./... && go build ./...` ·
+`cd services/frontend && npx vitest run && npm run build`.
