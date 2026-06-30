@@ -18,6 +18,13 @@ Adopt it via GitHub **"Use this template"**, change two values, `make up`.
 | Dev loop     | [Tilt](https://tilt.dev) — sync source into the pod, live-reload   |
 | Ingress      | **One shared Traefik** for the whole cluster; projects ship only an `IngressRoute` |
 
+## Architecture
+
+[**Architecture diagram**](https://diagramzu.ai/s/66n7isyVzaVoFmCLDTXCGV) — the request flow
+(Browser → `*.test` DNS → the shared Traefik → an `IngressRoute` splitting `/` to Vue and
+`/api` to Go), the Tilt live-reload dev loop, and the same kustomize manifests running on
+local (`localhost:32000` `:dev`) vs prod (GHCR `:latest`).
+
 ## Why it exists
 
 Running several projects on one local MicroK8s box usually means a Traefik *per
@@ -33,7 +40,7 @@ manual (and those are `make` targets).
 ## Quick start
 
 ```bash
-# 1. one-time per machine: shared Traefik + *.test wildcard DNS
+# 1. one-time per machine: install the shared Traefik (then add the printed *.test DNS line)
 make cluster-init
 
 # 2. set the two knobs (below): project namespace + <name>.test host
@@ -64,13 +71,24 @@ A new project changes exactly two values:
 
 | Target               | What |
 |----------------------|------|
-| `make cluster-init`  | once per machine: shared Traefik + the `*.test` DNS line |
+| `make cluster-init`  | once per machine: install the shared Traefik; prints the `*.test` DNS line to add (see [`infra/cluster/dnsmasq.md`](infra/cluster/dnsmasq.md)) |
 | `make secrets-apply` | build the `app-secrets` Secret from `secrets.env` |
 | `make up` / `down`   | the dev loop (`tilt up`/`down`) — Go + Vue live-reload |
 | `make apply`         | one-shot deploy of `overlays/local` without Tilt |
 | `make migrate`       | (re)run DB migrations (ConfigMap from the `db/migrations` glob) |
 | `make deploy`        | prod: apply `overlays/prod` |
 | `make umami`         | optional: install the shared umami analytics |
+
+`make umami` needs its own `umami` Secret first (it's referenced by the umami app and its
+Postgres). Create the namespace + secret, then install:
+
+```bash
+kubectl create namespace umami
+kubectl create secret generic umami -n umami \
+  --from-literal=postgres-password=CHANGEME \
+  --from-literal=app-secret="$(openssl rand -hex 16)"
+make umami
+```
 
 Production: `make cluster-init` on the prod cluster once, fill `secrets.env`,
 `make secrets-apply`, `make deploy`, `make migrate`.
