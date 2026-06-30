@@ -24,68 +24,10 @@ The request flow (Browser → `*.test` DNS → the shared Traefik → an `Ingres
 `/` to Vue and `/api` to Go), the Tilt live-reload dev loop, and the same kustomize manifests
 on local (`localhost:32000` `:dev`) vs prod (GHCR `:latest`):
 
-```mermaid
-flowchart TD
-    subgraph dev["Dev loop — local only"]
-        Dev[Developer<br/>edits source]
-        Tilt[Tilt<br/>live_update sync]
-    end
+![stackbase architecture](docs/architecture.svg)
 
-    subgraph img["Images — same manifests, two overlays"]
-        LReg[(localhost:32000<br/>local :dev)]
-        GHCR[(ghcr.io<br/>prod :latest)]
-    end
-
-    Browser[Browser<br/>http://stackbase.test]
-    DNS[dnsmasq<br/>*.test then 127.0.0.1]
-
-    subgraph ing["ns: ingress — cluster infra"]
-        Traefik[Shared Traefik<br/>hostPort 80/443<br/>watches all namespaces]
-    end
-
-    subgraph sb["ns: stackbase"]
-        IR[IngressRoute<br/>Host stackbase.test]
-        FE[Vue frontend<br/>Vite / nginx :5173]
-        API[Go api :8080<br/>JWT-validate middleware]
-        PG[(Postgres 16<br/>StatefulSet)]
-        Migrate[migrate Job<br/>globs /migrations/*.sql]
-    end
-
-    subgraph an["ns: umami — shared analytics"]
-        Umami[umami]
-        UPG[(umami Postgres)]
-    end
-
-    Dev --> Tilt
-    Tilt -->|sync api then CompileDaemon rebuild| API
-    Tilt -->|sync src then Vite HMR| FE
-    Tilt --> LReg
-
-    LReg -.->|local pull| API
-    LReg -.->|local pull| FE
-    GHCR -.->|prod pull| API
-    GHCR -.->|prod pull| FE
-
-    Browser --> DNS --> Traefik
-    Traefik --> IR
-    IR -->|path /| FE
-    IR -->|path /api stripPrefix| API
-    API --> PG
-    Migrate --> PG
-    FE -.->|VITE_UMAMI_* gated| Umami
-    Umami --> UPG
-
-    classDef accent fill:#f59e0b,stroke:#b45309,color:#1a1a1a
-    classDef core fill:#60a5fa,stroke:#2563eb,color:#1a1a1a
-    classDef data fill:#5eead4,stroke:#0d9488,color:#1a1a1a
-    classDef muted fill:#cbd5e1,stroke:#64748b,color:#1a1a1a
-    class Traefik accent
-    class API,FE core
-    class PG,UPG data
-    class GHCR muted
-```
-
-> Interactive / editable version: [diagramzu](https://diagramzu.ai/s/66n7isyVzaVoFmCLDTXCGV).
+> Interactive / editable version: [diagramzu](https://diagramzu.ai/s/66n7isyVzaVoFmCLDTXCGV) —
+> re-export `docs/architecture.svg` from there when the diagram changes.
 
 ## Why it exists
 
