@@ -10,6 +10,9 @@ exploring the whole stackbase tree.
 > ```
 > (or `claude --add-dir /home/jay/code/stackbase` if you also need to grep the
 > real files live.)
+>
+> Prefer to just drive it? Paste the reusable prompt in
+> [adopt-prompt.md](adopt-prompt.md) into a session in the target repo.
 
 The win you're adopting: **one shared Traefik + `*.test` DNS for the whole
 machine.** Per-project ingress controllers, NodePorts, and host Caddy all go
