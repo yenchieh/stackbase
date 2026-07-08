@@ -16,3 +16,15 @@ images:
   - name: stackbase-frontend
     newName: localhost:32000/stackbase-frontend
     newTag: dev
+
+# Dev-only: the api pod runs the CompileDaemon image and rebuilds in-pod on every
+# .go save. `go build` needs far more memory than the tiny runtime — raise the
+# limit so the compile doesn't get OOMKilled (prod keeps the lean base limit).
+patches:
+  - target:
+      kind: Deployment
+      name: api
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 1Gi

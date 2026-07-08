@@ -78,10 +78,27 @@ A new project changes exactly two values:
 | `make cluster-init`  | once per machine: install the shared Traefik; prints the `*.test` DNS line to add (see [`infra/cluster/dnsmasq.md`](infra/cluster/dnsmasq.md)) |
 | `make secrets-apply` | build the `app-secrets` Secret from `secrets.env` |
 | `make up` / `down`   | the dev loop (`tilt up`/`down`) — Go + Vue live-reload |
-| `make apply`         | one-shot deploy of `overlays/local` without Tilt |
+| `make apply`         | one-shot deploy of `overlays/local` without Tilt (guards against a non-local kube context) |
 | `make migrate`       | (re)run DB migrations (ConfigMap from the `db/migrations` glob) |
-| `make deploy`        | prod: apply `overlays/prod` |
+| `make seed`          | seed demo data (`go run ./cmd/seed`); `make k8s-seed` runs it inside the api pod |
+| `make deploy`        | prod: render `overlays/prod`, refuse on placeholder values, pin images to the git SHA, apply |
+| `make prod-deploy`   | prod: build + push (`:latest` + `:<sha>`) then `deploy` |
 | `make umami`         | optional: install the shared umami analytics |
+| **day-2**            | `status` · `logs SERVICE=` · `shell SERVICE=` · `restart [SERVICE=]` · `events` · `validate [OVERLAY=]` · `diff [OVERLAY=]` · `health` |
+
+Prod knobs: `GH_OWNER` / `REGISTRY` (image target), `PROD_KUBECONFIG` (targets a
+specific cluster so a prod `make deploy` can't hit the wrong context).
+
+**Secrets & config conventions**
+- One `app-secrets` Secret, built from a gitignored `secrets.env` (`make secrets-apply`).
+  Required keys: `JWT_SECRET`, `POSTGRES_PASSWORD`. Optional keys (MinIO/Discord for the
+  prod backup) are read with `secretKeyRef … optional: true`, so leaving them blank never
+  wedges a pod in `CreateContainerConfigError` — the feature just stays off.
+- **A secret or ConfigMap change does *not* restart running pods.** After `make secrets-apply`
+  (or editing config), run `make restart` (or `make restart SERVICE=api`) to pick it up.
+- Prod Postgres backup: fill the MinIO keys in `secrets.env`, then `make prod-deploy` ships the
+  `postgres-backup` CronJob (every 12h → MinIO, Discord alert on failure). Restore with
+  [`infra/k8s/overlays/prod/backup/restore_script.sh`](infra/k8s/overlays/prod/backup/restore_script.sh).
 
 `make umami` needs its own `umami` Secret first (it's referenced by the umami app and its
 Postgres). Create the namespace + secret, then install:

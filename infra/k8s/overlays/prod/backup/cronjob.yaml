@@ -1,0 +1,72 @@
+# Prod-only Postgres backup. Every 12h: pg_dump the `stackbase` DB → MinIO,
+# prune >RETENTION_DAYS, Discord-alert on failure. The script is mounted from a
+# ConfigMap (configMapGenerator in overlays/prod/kustomization.yaml) so editing
+# backup_script.sh doesn't require rebuilding the image.
+#
+# MinIO/Discord keys are OPTIONAL (see backup_script.sh): unconfigured → the Job
+# fails the alias step and records a failed run, it does not wedge the pod.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  labels:
+    app: postgres-backup
+spec:
+  schedule: "0 */12 * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 3600
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: backup
+              # Bare name — the prod overlay's images: list retags it to
+              # $(REGISTRY)/stackbase-backup so GH_OWNER is honored (like api/frontend).
+              image: stackbase-backup
+              imagePullPolicy: Always
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+              env:
+                - name: DB_HOST
+                  value: "postgres"
+                - name: DB_PORT
+                  value: "5432"
+                - name: DB_USER
+                  value: "stackbase"
+                - name: DB_NAME
+                  value: "stackbase"
+                - name: MINIO_BUCKET
+                  value: "stackbase-backup"
+                - name: RETENTION_DAYS
+                  value: "30"
+                - name: POSTGRES_PASSWORD
+                  valueFrom: { secretKeyRef: { name: app-secrets, key: postgres-password } }
+                # optional: unconfigured deploy runs + alerts rather than
+                # CreateContainerConfigError on a missing key (see U5 convention).
+                - name: MINIO_ENDPOINT
+                  valueFrom: { secretKeyRef: { name: app-secrets, key: minio-endpoint, optional: true } }
+                - name: MINIO_ACCESS_KEY
+                  valueFrom: { secretKeyRef: { name: app-secrets, key: minio-access-key, optional: true } }
+                - name: MINIO_SECRET_KEY
+                  valueFrom: { secretKeyRef: { name: app-secrets, key: minio-secret-key, optional: true } }
+                - name: DISCORD_WEBHOOK
+                  valueFrom: { secretKeyRef: { name: app-secrets, key: discord-webhook, optional: true } }
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+          volumes:
+            - name: script
+              configMap:
+                name: backup-script
+                defaultMode: 0755

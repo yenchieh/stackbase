@@ -7,13 +7,22 @@
 docker_build(
     'localhost:32000/stackbase-api', 'services/api',
     dockerfile='services/api/Dockerfile.dev',
-    live_update=[sync('services/api', '/app')],            # edit .go -> CompileDaemon rebuilds in-pod
+    live_update=[
+        # A dep change can't be hot-synced (go.sum drives the build) — force a full
+        # image rebuild instead of syncing a broken module graph into the pod.
+        fall_back_on(['services/api/go.mod', 'services/api/go.sum']),
+        sync('services/api', '/app'),                     # edit .go -> CompileDaemon rebuilds in-pod
+    ],
 )
 
 docker_build(
     'localhost:32000/stackbase-frontend', 'services/frontend',
     dockerfile='services/frontend/Dockerfile.dev',
-    live_update=[sync('services/frontend/src', '/app/src')],  # edit src/ -> Vite HMR; node_modules untouched
+    live_update=[
+        # Same rule for JS deps: a package.json/lock change needs a real npm install.
+        fall_back_on(['services/frontend/package.json', 'services/frontend/package-lock.json']),
+        sync('services/frontend/src', '/app/src'),        # edit src/ -> Vite HMR; node_modules untouched
+    ],
 )
 
 # The same overlay `make apply` uses — local==prod manifests.

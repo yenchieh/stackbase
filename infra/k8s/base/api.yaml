@@ -22,6 +22,16 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+          # Runtime (distroless Go) is tiny. Only a memory limit is set (OOM guard);
+          # NO cpu limit — a CPU cap would throttle the local dev image's in-pod
+          # CompileDaemon `go build` and slow every hot-reload. The local overlay
+          # additionally RAISES the memory limit for the same compile.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 512Mi
           env:
             - name: PORT
               value: "8080"

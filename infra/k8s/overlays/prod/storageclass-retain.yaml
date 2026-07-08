@@ -1,0 +1,17 @@
+# Prod data-loss insurance: a Retain-reclaim StorageClass for the Postgres PVC.
+# With the default microk8s-hostpath (Delete reclaim), `kubectl delete -k` — or
+# deleting the StatefulSet's PVC — destroys the volume. Retain keeps the
+# underlying data around (the PV goes Released, not deleted) so a fat-fingered
+# teardown is recoverable. The prod overlay patches the postgres volumeClaimTemplate
+# onto this class.
+#
+# provisioner matches MicroK8s' built-in hostpath provisioner. On a non-MicroK8s
+# prod cluster, change the provisioner to that cluster's (e.g. a CSI driver) and
+# keep reclaimPolicy: Retain.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: stackbase-hostpath-retain
+provisioner: microk8s.io/hostpath
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer

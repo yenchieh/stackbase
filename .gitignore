@@ -20,3 +20,6 @@ dist/
 # misc
 .DS_Store
 *.log
+
+# stray Go binaries from `go build ./cmd/...`
+/services/api/seed

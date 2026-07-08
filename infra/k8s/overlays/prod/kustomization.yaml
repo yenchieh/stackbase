@@ -6,14 +6,32 @@ namespace: stackbase
 
 resources:
   - ../../base
+  - backup/cronjob.yaml          # prod-only Postgres backup (U1)
+  - storageclass-retain.yaml     # Retain-reclaim class for the DB PVC (U4)
+
+# backup_script.sh mounted into the CronJob as a ConfigMap — edit the script
+# without rebuilding the backup image. disableNameSuffixHash keeps the name
+# stable (`backup-script`) so cronjob.yaml can reference it by a fixed name.
+configMapGenerator:
+  - name: backup-script
+    files:
+      - backup/backup_script.sh
+generatorOptions:
+  disableNameSuffixHash: true
 
 # Prod images: GHCR :latest (built/pushed in Phase-2 CI; hand-deployable now).
+# All three use bare names in the resources so this list — and the GH_OWNER knob
+# behind it — is the single place the registry/owner is set. Keep it in sync with
+# the Makefile's REGISTRY (ghcr.io/$(GH_OWNER)).
 images:
   - name: stackbase-api
     newName: ghcr.io/yenchieh/stackbase-api
     newTag: latest
   - name: stackbase-frontend
     newName: ghcr.io/yenchieh/stackbase-frontend
+    newTag: latest
+  - name: stackbase-backup
+    newName: ghcr.io/yenchieh/stackbase-backup
     newTag: latest
 
 # imagePullPolicy: Always so a :latest redeploy actually re-pulls. Targets the two
@@ -25,6 +43,15 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: Always
+  # Point the Postgres PVC at the Retain class (U4). storageClassName on an
+  # existing PVC is immutable — this must be set on the FIRST prod deploy.
+  - target:
+      kind: StatefulSet
+      name: postgres
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: stackbase-hostpath-retain
 
 # Adopter prod steps (not templated — too site-specific to guess):
 #   - point the IngressRoute Host() at the real domain (it ships as <name>.test)
