@@ -12,7 +12,7 @@ template" repo) for a **Go + Vue + MicroK8s** stack. Local dev and prod run the
 change two values → `make up`.
 
 - **Full design (read first):** `docs/specs/2026-06-29-stackbase-foundation-design.md`
-- **Build progress / task list:** `ROADMAP.md` (gitignored, local-only)
+- **Build progress / task list:** `ROADMAP.md` (tracked in git)
 - **Status:** Phase 1 in progress. Nothing built yet beyond scaffold — **start at ROADMAP Task 1.**
 
 ## Prime directive: it must run on a STRANGER'S machine
@@ -96,11 +96,11 @@ base+overlays/local → Tiltfile → umami → overlays/prod → Makefile + READ
 
 ## Roadmap mechanics
 
-`ROADMAP.md` is **gitignored / local-only** (planning, not pushed to GitHub). Plain
-markdown checklist; status key **✅ done · 🚧 in-progress · ⬜ todo**. Standing rule:
-flip a task to 🚧 when you **start** it and ✅ when **done**. Because the roadmap is
-untracked, the global commit-gate hook fails open here — **no `[skip-roadmap]` token
-is needed** on commits.
+`ROADMAP.md` is **tracked in git** (pushed to GitHub). Plain markdown checklist;
+status key **✅ done · 🚧 in-progress · ⬜ todo**. Standing rule: flip a task to 🚧
+when you **start** it and ✅ when **done**. Because the roadmap is now tracked, the
+global commit-gate hook **enforces** here — every commit must update `ROADMAP.md` or
+carry a **`[skip-roadmap]`** (or `[no-task]`) token to bypass.
 
 ## Commands (target shape — exist after Phase 1 task 12)
 

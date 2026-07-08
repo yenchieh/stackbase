@@ -2,9 +2,6 @@
 secrets.env
 .env
 
-# roadmap — local planning only, not pushed to GitHub
-ROADMAP.md
-
 # local-only Claude notes
 .claude.local.md
 
