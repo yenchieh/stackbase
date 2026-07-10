@@ -12,8 +12,8 @@ template" repo) for a **Go + Vue + MicroK8s** stack. Local dev and prod run the
 change two values → `make up`.
 
 - **Full design (read first):** `docs/specs/2026-06-29-stackbase-foundation-design.md`
-- **Build progress / task list:** `ROADMAP.md` (tracked in git)
-- **Status:** Phase 1 in progress. Nothing built yet beyond scaffold — **start at ROADMAP Task 1.**
+- **Build progress / task list:** `docs/roadmap.html` (tracked in git)
+- **Status:** Phase 1 + 1.5 shipped (Tasks 0–20); Phase 2 (Tasks 21–24) planned.
 
 ## Prime directive: it must run on a STRANGER'S machine
 
@@ -57,7 +57,7 @@ gRPC (proto + `buf` + a 2nd service) · prod CI (GHCR build/push, secret bootstr
 full auth/user module · migrating nursecall/manyi/komiic onto the shared Traefik.
 A scaffolding/generator CLI is **YAGNI** — this is a plain template, not a generator.
 
-## Build order (ROADMAP.md is the source of truth)
+## Build order (docs/roadmap.html is the source of truth)
 
 **Spikes first** — they de-risk the only parts not already proven in nursing-call.
 If a spike fails, fix the **design (and the spec)** before building on it.
@@ -96,11 +96,22 @@ base+overlays/local → Tiltfile → umami → overlays/prod → Makefile + READ
 
 ## Roadmap mechanics
 
-`ROADMAP.md` is **tracked in git** (pushed to GitHub). Plain markdown checklist;
-status key **✅ done · 🚧 in-progress · ⬜ todo**. Standing rule: flip a task to 🚧
-when you **start** it and ✅ when **done**. Because the roadmap is now tracked, the
-global commit-gate hook **enforces** here — every commit must update `ROADMAP.md` or
-carry a **`[skip-roadmap]`** (or `[no-task]`) token to bypass.
+`docs/roadmap.html` is **tracked in git** (pushed to GitHub) — a self-contained
+single-page roadmap sharing the Indigo Ink template used by the sibling projects.
+Status vocab is **`shipped` · `progress` · `planned` · `superseded`** (badge labels
+Shipped / In progress / Planned / Superseded).
+
+**To change a task's status, edit TWO places together** (they must agree — the
+`TASKS` array drives the sidebar + progress panel, the `<section>` drives the card):
+
+1. the task's entry in the `const TASKS = [...]` array (the `s:` field), and
+2. its `<section class="task <status> reveal">` class **and** the matching
+   `<span class="badge <status>">` label.
+
+Standing rule: flip a task to `progress` when you **start** it and `shipped` when
+**done**. Because the roadmap is tracked, the global commit-gate hook **enforces**
+here — every commit must update `docs/roadmap.html` or carry a **`[skip-roadmap]`**
+(or `[no-task]`) token to bypass.
 
 ## Commands (target shape — exist after Phase 1 task 12)
 

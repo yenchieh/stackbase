@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>stackbase — Build roadmap</title>
+<meta name="description" content="Build roadmap for stackbase — an opinionated Go + Vue + MicroK8s project-foundation template (local↔prod parity, one shared Traefik, Tilt live-reload)." />
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ═══════════════════════════════════════════════════════════════
+     stackbase — Roadmap
+     Self-contained. Shares the Indigo Ink token set used by the
+     sibling projects' roadmap.html so all project roadmaps look the
+     same. Dark re-scoped to [data-theme] so the in-page toggle drives it.
+     ═══════════════════════════════════════════════════════════════ */
+
+  :root {
+    /* Brand · Indigo */
+    --color-brand-50:#eef2ff; --color-brand-100:#e0e7ff; --color-brand-200:#c7d2fe;
+    --color-brand-300:#a5b4fc; --color-brand-400:#818cf8; --color-brand-500:#6366f1;
+    --color-brand-600:#4f46e5; --color-brand-700:#4338ca; --color-brand-800:#3730a3;
+    --color-brand-900:#312e81; --color-brand-950:#1e1b4b;
+    /* Neutral · Slate */
+    --color-neutral-0:#ffffff; --color-neutral-50:#f8fafc; --color-neutral-100:#f1f5f9;
+    --color-neutral-200:#e2e8f0; --color-neutral-300:#cbd5e1; --color-neutral-400:#94a3b8;
+    --color-neutral-500:#64748b; --color-neutral-600:#475569; --color-neutral-700:#334155;
+    --color-neutral-800:#1e293b; --color-neutral-900:#0f172a; --color-neutral-950:#020617;
+    /* Semantic raw */
+    --color-success-500:#10b981; --color-success-600:#059669; --color-success-300:#6ee7b7;
+    --color-success-50:#ecfdf5; --color-success-900:#064e3b;
+    --color-warning-500:#f59e0b; --color-warning-600:#d97706; --color-warning-300:#fcd34d;
+    --color-warning-50:#fffbeb; --color-warning-900:#78350f;
+    --color-info-500:#0ea5e9; --color-info-600:#0284c7; --color-info-300:#7dd3fc;
+    --color-info-50:#f0f9ff; --color-info-900:#0c4a6e;
+
+    /* Surfaces — LIGHT */
+    --color-bg:var(--color-neutral-50);
+    --color-surface:var(--color-neutral-0);
+    --color-surface-2:var(--color-neutral-100);
+    --color-surface-3:var(--color-neutral-200);
+    --color-text:var(--color-neutral-900);
+    --color-text-muted:var(--color-neutral-500);
+    --color-text-subtle:var(--color-neutral-400);
+    --color-border:var(--color-neutral-200);
+    --color-border-strong:var(--color-neutral-300);
+    --color-primary:var(--color-brand-700);
+    --color-primary-hover:var(--color-brand-800);
+    --color-primary-fg:var(--color-neutral-0);
+    --color-primary-tint:var(--color-brand-50);
+    --color-primary-tint-strong:var(--color-brand-100);
+    --color-success-fg:var(--color-success-600); --color-success-bg:var(--color-success-50);
+    --color-warning-fg:var(--color-warning-600); --color-warning-bg:var(--color-warning-50);
+    --color-info-fg:var(--color-info-600);       --color-info-bg:var(--color-info-50);
+    --focus-ring:0 0 0 3px rgba(67,56,202,0.25);
+    --hero-wash:radial-gradient(120% 120% at 12% -10%, rgba(67,56,202,0.10), transparent 60%);
+    --grain-opacity:0.025;
+
+    /* Type */
+    --font-sans:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --font-mono:"JetBrains Mono","Roboto Mono",ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    --text-xs:11px; --text-sm:13px; --text-base:15px; --text-md:17px; --text-lg:20px;
+    --text-xl:24px; --text-2xl:30px; --text-3xl:38px; --text-4xl:48px; --text-5xl:60px; --text-6xl:76px;
+    --leading-tight:1.12; --leading-snug:1.25; --leading-normal:1.55; --leading-relaxed:1.7;
+    --tracking-tightest:-0.04em; --tracking-tighter:-0.03em; --tracking-tight:-0.02em;
+    --tracking-snug:-0.01em; --tracking-wide:0.02em; --tracking-eyebrow:0.14em;
+    --weight-regular:400; --weight-medium:500; --weight-semibold:600; --weight-bold:700; --weight-black:800;
+
+    /* Space */
+    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px;
+    --space-8:32px; --space-10:40px; --space-12:48px; --space-16:64px; --space-20:80px; --space-24:96px;
+
+    /* Radii */
+    --radius-xs:4px; --radius-sm:6px; --radius-md:8px; --radius-lg:12px; --radius-xl:16px;
+    --radius-2xl:20px; --radius-pill:9999px;
+
+    /* Elevation — light */
+    --shadow-e1:0 1px 2px rgba(15,23,42,0.06),0 1px 1px rgba(15,23,42,0.04);
+    --shadow-e2:0 2px 4px rgba(15,23,42,0.06),0 4px 12px rgba(15,23,42,0.08);
+    --shadow-e3:0 4px 12px rgba(15,23,42,0.08),0 12px 32px rgba(15,23,42,0.10);
+
+    /* Motion */
+    --duration-fast:120ms; --duration-base:200ms; --duration-slow:320ms;
+    --ease-out:cubic-bezier(0.2,0.7,0.3,1);
+  }
+
+  [data-theme="dark"] {
+    --color-bg:var(--color-neutral-950);
+    --color-surface:var(--color-neutral-900);
+    --color-surface-2:var(--color-neutral-800);
+    --color-surface-3:var(--color-neutral-700);
+    --color-text:var(--color-neutral-100);
+    --color-text-muted:var(--color-neutral-400);
+    --color-text-subtle:var(--color-neutral-500);
+    --color-border:var(--color-neutral-800);
+    --color-border-strong:var(--color-neutral-700);
+    --color-primary:var(--color-brand-300);
+    --color-primary-hover:var(--color-brand-200);
+    --color-primary-fg:var(--color-brand-950);
+    --color-primary-tint:rgba(165,180,252,0.10);
+    --color-primary-tint-strong:rgba(165,180,252,0.18);
+    --color-success-fg:var(--color-success-300); --color-success-bg:rgba(110,231,183,0.10);
+    --color-warning-fg:var(--color-warning-300); --color-warning-bg:rgba(252,211,77,0.10);
+    --color-info-fg:var(--color-info-300);       --color-info-bg:rgba(125,211,252,0.10);
+    --focus-ring:0 0 0 3px rgba(165,180,252,0.35);
+    --hero-wash:radial-gradient(120% 120% at 12% -10%, rgba(129,140,248,0.16), transparent 60%);
+    --grain-opacity:0.04;
+    --shadow-e1:0 1px 2px rgba(0,0,0,0.4),0 1px 1px rgba(0,0,0,0.25);
+    --shadow-e2:0 2px 4px rgba(0,0,0,0.35),0 4px 12px rgba(0,0,0,0.40);
+    --shadow-e3:0 4px 12px rgba(0,0,0,0.40),0 12px 32px rgba(0,0,0,0.50);
+  }
+
+  /* ─── Base ─────────────────────────────────────────────────── */
+  *,*::before,*::after { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    margin:0; background:var(--color-bg); color:var(--color-text);
+    font-family:var(--font-sans); font-size:var(--text-base); line-height:var(--leading-normal);
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    transition:background var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out);
+  }
+  a { color:var(--color-primary); text-decoration:none; }
+  a:hover { text-decoration:underline; text-underline-offset:2px; }
+  ::selection { background:var(--color-primary-tint-strong); color:var(--color-text); }
+
+  /* faint grain for atmosphere */
+  body::before {
+    content:""; position:fixed; inset:0; z-index:9998; pointer-events:none; opacity:var(--grain-opacity);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ─── Reading-progress bar ─────────────────────────────────── */
+  .reading-progress {
+    position:fixed; top:0; left:0; height:3px; width:0%; z-index:9999;
+    background:linear-gradient(90deg,var(--color-brand-500),var(--color-brand-700));
+    transition:width 80ms linear;
+  }
+  [data-theme="dark"] .reading-progress { background:linear-gradient(90deg,var(--color-brand-300),var(--color-brand-500)); }
+
+  /* ─── Shell ────────────────────────────────────────────────── */
+  .shell { display:grid; grid-template-columns:288px minmax(0,1fr); min-height:100vh; }
+
+  /* ─── Sidebar ──────────────────────────────────────────────── */
+  .nav {
+    position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    padding:var(--space-8) var(--space-6) var(--space-12);
+    border-right:1px solid var(--color-border); background:var(--color-surface);
+    scrollbar-width:thin;
+  }
+  .brand { display:flex; align-items:center; gap:var(--space-3); margin-bottom:var(--space-6); }
+  .brand-glyph {
+    width:34px; height:34px; border-radius:9px; flex:0 0 auto;
+    background:linear-gradient(135deg,var(--color-brand-500),var(--color-brand-800));
+    display:grid; place-items:center; color:#fff; font-family:var(--font-mono);
+    font-weight:var(--weight-bold); font-size:16px; box-shadow:var(--shadow-e1);
+  }
+  .brand-text .nm { font-weight:var(--weight-bold); font-size:var(--text-md); letter-spacing:var(--tracking-tight); line-height:1; }
+  .brand-text .sb { font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-eyebrow); text-transform:uppercase; color:var(--color-text-muted); margin-top:3px; }
+
+  .theme-toggle { display:flex; background:var(--color-surface-2); padding:3px; border-radius:var(--radius-md); margin-bottom:var(--space-8); }
+  .theme-toggle button { flex:1; border:0; background:transparent; color:var(--color-text-muted); padding:7px 10px; font-size:var(--text-xs); font-family:var(--font-mono); font-weight:var(--weight-medium); border-radius:6px; cursor:pointer; letter-spacing:0.02em; transition:background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out); }
+  .theme-toggle button.active { background:var(--color-surface); color:var(--color-text); box-shadow:var(--shadow-e1); }
+
+  .nav-group { font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-eyebrow); text-transform:uppercase; color:var(--color-text-subtle); margin:var(--space-6) 0 var(--space-2); font-weight:var(--weight-semibold); display:flex; align-items:center; gap:var(--space-2); }
+  .nav-group:first-of-type { margin-top:0; }
+  .nav-group .count { margin-left:auto; color:var(--color-text-muted); background:var(--color-surface-2); border-radius:var(--radius-pill); padding:1px 7px; font-size:10px; letter-spacing:0; }
+  .nav a {
+    display:flex; align-items:center; gap:var(--space-2); padding:5px var(--space-2); border-radius:var(--radius-sm);
+    color:var(--color-text-muted); font-size:var(--text-sm); line-height:1.3;
+    border-left:2px solid transparent; transition:background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+  }
+  .nav a:hover { background:var(--color-surface-2); color:var(--color-text); text-decoration:none; }
+  .nav a.active { background:var(--color-primary-tint); color:var(--color-text); border-left-color:var(--color-primary); font-weight:var(--weight-medium); }
+  .nav a .n { font-family:var(--font-mono); font-size:var(--text-xs); color:var(--color-text-subtle); min-width:18px; text-align:right; font-variant-numeric:tabular-nums; }
+  .nav a.active .n { color:var(--color-primary); }
+  .nav a .t { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .dot { width:7px; height:7px; border-radius:50%; flex:0 0 auto; }
+  .dot.shipped { background:var(--color-success-500); }
+  .dot.progress { background:var(--color-warning-500); }
+  .dot.planned { background:var(--color-neutral-400); }
+  .dot.superseded { background:var(--color-text-subtle); }
+
+  /* ─── Main column ──────────────────────────────────────────── */
+  .main { padding:var(--space-16) var(--space-16) var(--space-24); max-width:1000px; }
+  @media (max-width:1180px){ .main { padding:var(--space-12) var(--space-10) var(--space-24); } }
+
+  /* ─── Hero ─────────────────────────────────────────────────── */
+  .hero { position:relative; padding:var(--space-2) 0 var(--space-10); }
+  .hero::before {
+    content:""; position:absolute; inset:-80px -200px auto -200px; height:360px;
+    background:var(--hero-wash); pointer-events:none; z-index:-1;
+    -webkit-mask-image:linear-gradient(to right, transparent 0, transparent 200px, #000 380px);
+    mask-image:linear-gradient(to right, transparent 0, transparent 200px, #000 380px);
+  }
+  .eyebrow { font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-eyebrow); text-transform:uppercase; color:var(--color-primary); font-weight:var(--weight-semibold); }
+  .hero h1 { font-size:var(--text-5xl); font-weight:var(--weight-black); letter-spacing:var(--tracking-tightest); line-height:var(--leading-tight); margin:var(--space-3) 0 var(--space-4); }
+  @media (max-width:720px){ .hero h1 { font-size:var(--text-4xl); } }
+  .lede { color:var(--color-text-muted); max-width:660px; line-height:var(--leading-relaxed); font-size:var(--text-md); margin:0; }
+  .lede code { font-family:var(--font-mono); font-size:0.86em; background:var(--color-surface-2); padding:1px 5px; border-radius:var(--radius-xs); }
+
+  /* ─── Progress panel ───────────────────────────────────────── */
+  .progress-panel {
+    margin:var(--space-10) 0 var(--space-12); padding:var(--space-8);
+    background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-xl);
+    box-shadow:var(--shadow-e1);
+  }
+  .progress-head { display:flex; align-items:flex-end; gap:var(--space-4); margin-bottom:var(--space-6); flex-wrap:wrap; }
+  .progress-pct { font-family:var(--font-mono); font-weight:var(--weight-bold); font-size:var(--text-5xl); line-height:0.9; letter-spacing:var(--tracking-tighter); color:var(--color-text); font-variant-numeric:tabular-nums; }
+  .progress-pct-sym { color:var(--color-primary); font-size:0.5em; vertical-align:super; margin-left:2px; }
+  .progress-pct-label { color:var(--color-text-muted); font-size:var(--text-md); padding-bottom:6px; }
+  .progress-bar { display:flex; height:14px; border-radius:var(--radius-pill); overflow:hidden; background:var(--color-surface-2); margin-bottom:var(--space-4); }
+  .progress-bar .seg { height:100%; transition:width var(--duration-slow) var(--ease-out); }
+  .progress-bar .seg.shipped { background:linear-gradient(90deg,var(--color-success-500),var(--color-success-600)); }
+  .progress-bar .seg.progress { background:linear-gradient(90deg,var(--color-warning-300),var(--color-warning-500)); }
+  .progress-bar .seg.planned { background:var(--color-surface-3); }
+  .progress-legend { display:flex; gap:var(--space-5); flex-wrap:wrap; margin-bottom:var(--space-6); }
+  .progress-legend span { display:inline-flex; align-items:center; gap:var(--space-2); font-size:var(--text-sm); color:var(--color-text-muted); }
+  .stat-tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:var(--space-3); }
+  @media (max-width:640px){ .stat-tiles { grid-template-columns:1fr; } }
+  .tile { border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:var(--space-4) var(--space-5); background:var(--color-bg); }
+  .tile .num { font-family:var(--font-mono); font-weight:var(--weight-bold); font-size:var(--text-3xl); line-height:1; font-variant-numeric:tabular-nums; }
+  .tile .lbl { font-size:var(--text-sm); color:var(--color-text-muted); margin-top:var(--space-2); display:flex; align-items:center; gap:var(--space-2); }
+  .tile.shipped .num { color:var(--color-success-fg); }
+  .tile.progress .num { color:var(--color-warning-fg); }
+  .tile.planned .num { color:var(--color-text); }
+  .tile.superseded .num { color:var(--color-text-subtle); }
+
+  /* ─── Section headers ──────────────────────────────────────── */
+  .section-head { margin:var(--space-16) 0 var(--space-6); padding-top:var(--space-8); border-top:1px solid var(--color-border); }
+  .section-head:first-of-type { border-top:0; padding-top:0; }
+  .section-head .k { font-family:var(--font-mono); font-size:var(--text-xs); letter-spacing:var(--tracking-eyebrow); text-transform:uppercase; color:var(--color-text-subtle); font-weight:var(--weight-semibold); }
+  .section-head h2 { font-size:var(--text-2xl); font-weight:var(--weight-bold); letter-spacing:var(--tracking-tight); margin:var(--space-2) 0 0; }
+
+  /* ─── Task card ────────────────────────────────────────────── */
+  .task {
+    scroll-margin-top:var(--space-8); position:relative; margin:var(--space-4) 0;
+    background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-xl);
+    border-left:3px solid var(--color-border-strong); padding:var(--space-6) var(--space-8);
+    transition:border-color var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
+  }
+  .task:hover { box-shadow:var(--shadow-e2); transform:translateY(-2px); }
+  .task.shipped { border-left-color:var(--color-success-500); }
+  .task.progress { border-left-color:var(--color-warning-500); }
+  .task.planned  { border-left-color:var(--color-neutral-400); }
+  .task.superseded { border-left-color:var(--color-border-strong); border-left-style:dashed; }
+  .task.superseded .task-num { background:var(--color-surface-2); color:var(--color-text-subtle); }
+  .task.superseded .task-title h3 { color:var(--color-text-muted); }
+  /* status-priority ordering: in-progress → planned → shipped → superseded (archived work sinks lowest) */
+  .tasks { display:flex; flex-direction:column; gap:var(--space-4); }
+  .tasks > .task { margin:0; }
+  .task.progress   { order:0; }
+  .task.planned    { order:1; }
+  .task.shipped    { order:2; }
+  .task.superseded { order:3; }
+
+  .task-head { display:flex; align-items:center; gap:var(--space-4); margin-bottom:var(--space-4); flex-wrap:wrap; }
+  .task-num {
+    font-family:var(--font-mono); font-weight:var(--weight-bold); font-size:var(--text-lg);
+    width:42px; height:42px; flex:0 0 auto; border-radius:var(--radius-md); display:grid; place-items:center;
+    background:var(--color-primary-tint); color:var(--color-primary); font-variant-numeric:tabular-nums;
+  }
+  .task-title { flex:1; min-width:240px; }
+  .task-title h3 { font-size:var(--text-xl); font-weight:var(--weight-semibold); letter-spacing:var(--tracking-snug); line-height:var(--leading-snug); margin:0; }
+  .task-title h3 a.anchor { color:var(--color-text-subtle); margin-left:var(--space-2); opacity:0; font-weight:var(--weight-regular); transition:opacity var(--duration-fast) var(--ease-out); }
+  .task:hover .task-title h3 a.anchor { opacity:1; }
+
+  .badge {
+    font-family:var(--font-mono); font-size:var(--text-xs); font-weight:var(--weight-semibold);
+    letter-spacing:0.03em; text-transform:uppercase; padding:4px 10px; border-radius:var(--radius-pill);
+    display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  }
+  .badge::before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .badge.shipped { color:var(--color-success-fg); background:var(--color-success-bg); }
+  .badge.progress { color:var(--color-warning-fg); background:var(--color-warning-bg); }
+  .badge.planned { color:var(--color-text-muted); background:var(--color-surface-2); }
+  .badge.superseded { color:var(--color-text-subtle); background:var(--color-surface-2); }
+
+  /* ─── Card content ─────────────────────────────────────────── */
+  .content { color:var(--color-text); }
+  .content > *:first-child { margin-top:0; }
+  .content > *:last-child { margin-bottom:0; }
+  .content p { margin:var(--space-3) 0; line-height:var(--leading-relaxed); color:var(--color-text); }
+  .content .meta-line { color:var(--color-text-muted); }
+  .content h4 { font-size:var(--text-base); font-weight:var(--weight-bold); letter-spacing:var(--tracking-snug); margin:var(--space-5) 0 var(--space-2); color:var(--color-text); }
+  .content strong { font-weight:var(--weight-semibold); color:var(--color-text); }
+  .content ul, .content ol { margin:var(--space-2) 0 var(--space-3); padding-left:var(--space-6); }
+  .content li { margin:var(--space-2) 0; line-height:var(--leading-relaxed); }
+  .content li::marker { color:var(--color-text-subtle); }
+  .content ul ul, .content ul ol, .content ol ul { margin:var(--space-1) 0; }
+  .content code { font-family:var(--font-mono); font-size:0.85em; background:var(--color-surface-2); color:var(--color-text); padding:1.5px 5px; border-radius:var(--radius-xs); border:1px solid var(--color-border); }
+  .content pre { background:var(--color-surface-2); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:var(--space-4); overflow-x:auto; margin:var(--space-3) 0; }
+  .content pre code { background:none; border:0; padding:0; font-size:var(--text-sm); line-height:var(--leading-normal); }
+  .content blockquote { margin:var(--space-3) 0; padding:var(--space-2) var(--space-5); border-left:3px solid var(--color-primary); background:var(--color-primary-tint); border-radius:0 var(--radius-md) var(--radius-md) 0; color:var(--color-text-muted); font-style:italic; }
+  .content blockquote p { color:var(--color-text-muted); }
+  .content hr { border:0; border-top:1px dashed var(--color-border-strong); margin:var(--space-5) 0; }
+  .check { color:var(--color-success-fg); font-style:normal; font-weight:var(--weight-bold); }
+
+  /* ─── Footer ───────────────────────────────────────────────── */
+  .footer { margin-top:var(--space-16); padding-top:var(--space-6); border-top:1px solid var(--color-border); color:var(--color-text-subtle); font-size:var(--text-sm); display:flex; justify-content:space-between; align-items:center; gap:var(--space-4); flex-wrap:wrap; }
+  .footer .mono { font-family:var(--font-mono); font-size:var(--text-xs); }
+  .to-top { font-family:var(--font-mono); font-size:var(--text-xs); color:var(--color-text-muted); }
+
+  /* ─── Mobile: collapse sidebar ─────────────────────────────── */
+  .mobile-bar { display:none; }
+  @media (max-width:900px){
+    .shell { grid-template-columns:1fr; }
+    .nav { display:none; }
+    .main { padding:var(--space-6) var(--space-5) var(--space-20); max-width:none; }
+    .mobile-bar { display:flex; position:sticky; top:0; z-index:50; align-items:center; justify-content:space-between; gap:var(--space-3); padding:var(--space-3) var(--space-5); background:var(--color-surface); border-bottom:1px solid var(--color-border); }
+    .mobile-bar .brand { margin-bottom:0; }
+    .progress-pct { font-size:var(--text-4xl); }
+  }
+
+  /* ─── Page-load reveal (reduced-motion safe) ───────────────── */
+  @media (prefers-reduced-motion:no-preference){
+    .reveal { opacity:0; transform:translateY(12px); animation:rise var(--duration-slow) var(--ease-out) forwards; }
+    @keyframes rise { to { opacity:1; transform:none; } }
+  }
+  @media (prefers-reduced-motion:reduce){ html { scroll-behavior:auto; } }
+</style>
+</head>
+<body id="top">
+<div class="reading-progress" id="reading-progress"></div>
+
+<div class="shell">
+  <!-- ─── Sidebar ─────────────────────────────────────────── -->
+  <aside class="nav">
+    <div class="brand">
+      <div class="brand-glyph">sb</div>
+      <div class="brand-text">
+        <div class="nm">stackbase</div>
+        <div class="sb">Roadmap</div>
+      </div>
+    </div>
+    <div class="theme-toggle" role="group" aria-label="Color theme">
+      <button data-set-theme="light" class="active">Light</button>
+      <button data-set-theme="dark">Dark</button>
+    </div>
+    <nav id="nav-list" aria-label="Roadmap sections"></nav>
+  </aside>
+
+  <!-- ─── Main ────────────────────────────────────────────── -->
+  <main class="main">
+    <div class="mobile-bar">
+      <div class="brand"><div class="brand-glyph">sb</div><div class="brand-text"><div class="nm">stackbase</div><div class="sb">Roadmap</div></div></div>
+      <div class="theme-toggle" style="margin:0;width:140px"><button data-set-theme="light" class="active">Light</button><button data-set-theme="dark">Dark</button></div>
+    </div>
+
+    <header class="hero reveal">
+      <div class="eyebrow">Build roadmap</div>
+      <h1>stackbase Build roadmap</h1>
+      <p class="lede">An opinionated Go + Vue + MicroK8s project-foundation template — the same kustomize manifests run local and prod, both languages hot-reload on save, one shared Traefik owns ingress. Tracks build progress against the design at <code>docs/specs/2026-06-29-stackbase-foundation-design.md</code>.</p>
+
+      <section class="progress-panel" aria-label="Roadmap progress overview">
+        <div class="progress-head">
+          <div class="progress-pct"><span id="pct">0</span><span class="progress-pct-sym">%</span></div>
+          <div class="progress-pct-label">of the roadmap shipped</div>
+        </div>
+        <div class="progress-bar" id="progress-bar" role="img" aria-label="Progress by status"></div>
+        <div class="progress-legend" id="progress-legend"></div>
+        <div class="stat-tiles" id="stat-tiles"></div>
+      </section>
+    </header>
+
+    <div class="tasks">
+
+    <section class="task shipped reveal" id="task-0">
+      <div class="task-head">
+        <div class="task-num">0</div>
+        <div class="task-title"><h3>Project scaffold <a class="anchor" href="#task-0" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done.</p>
+        <p>Repo, README, MIT license, <code>.gitignore</code>, this roadmap, and the design spec (<code>docs/specs/2026-06-29-stackbase-foundation-design.md</code>) in place.</p>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-1">
+      <div class="task-head">
+        <div class="task-num">1</div>
+        <div class="task-title"><h3>SPIKE — Tilt live-reload on MicroK8s <a class="anchor" href="#task-1" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — <em>de-risks the whole dev loop.</em></p>
+        <p><strong>Proven in <code>spike/</code></strong> (Tilt v0.37.4): a <code>.go</code> edit → Tilt <code>live_update</code> sync → CompileDaemon <code>Build ok</code> + in-pod restart → same pod serves the new body; image <code>localhost:32000/stackbase-spike:tilt-…</code> confirms the registry round-trip. CompileDaemon stays (no Tilt-native <code>run()</code> fallback needed).</p>
+        <h4>Findings carried into later tasks</h4>
+        <ul>
+          <li><strong>kubeconfig wiring (Task 3/12):</strong> host <code>kubectl</code> had no current-context — MicroK8s ships its own config. <code>make cluster-init</code> / README must <code>microk8s config &gt;&gt; ~/.kube/config</code> (or set <code>KUBECONFIG</code>) so Tilt targets the cluster.</li>
+          <li><strong>host port conflicts:</strong> <code>:80</code> and <code>:8080</code> are already taken on this box. Real apps route through the shared Traefik (<code>:80</code>), so the old per-project Traefik/Caddy must be freed before Task 2. Spike used port-forward <code>18080</code>.</li>
+          <li><code>spike/</code> is throwaway — delete after the real <code>services/api</code> + Tiltfile land (Task 8).</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-2">
+      <div class="task-head">
+        <div class="task-num">2</div>
+        <div class="task-title"><h3>SPIKE — shared Traefik ingress <a class="anchor" href="#task-2" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — <em>de-risks the multi-project fix.</em></p>
+        <p><strong>Proven in <code>spike/ingress.yaml</code></strong>: ONE Traefik (ns <code>ingress-spike</code>, <code>--providers.kubernetescrd</code> with NO namespace restriction) routed <code>a.test</code>→ns <code>spike-a</code> and <code>b.test</code>→ns <code>spike-b</code>, unknown host → 404, all via one entrypoint. Existing per-project Traefiks left untouched.</p>
+        <h4>Findings carried into later tasks</h4>
+        <ul>
+          <li><strong>versions:</strong> cluster CRDs are Traefik <strong>v3</strong> (<code>ingressroutes.traefik.io</code>); real shared Traefik = <code>traefik:v3.2</code>, IngressRoutes <code>traefik.io/v1alpha1</code>.</li>
+          <li><strong>the enabler is ClusterRole RBAC</strong> (not Role): watch <code>services</code>/<code>endpointslices</code>/<code>secrets</code>/<code>traefik.io</code> cluster-wide — literally what "watch all namespaces" requires.</li>
+          <li><strong>hostPort works</strong> (proven on 18081). Real Traefik wants hostPort <strong>80/443</strong>, but <code>:80</code> is currently owned by an existing per-project Traefik — so the live <code>:80</code> apply is blocked until the Phase-2 cutover.</li>
+          <li><strong>MetalLB is enabled</strong> → prod ingress can be a <code>LoadBalancer</code> Service.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-3">
+      <div class="task-head">
+        <div class="task-num">3</div>
+        <div class="task-title"><h3>Cluster bootstrap <a class="anchor" href="#task-3" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — authored + server-validated; live <code>:80</code> apply deferred to the cutover.</p>
+        <p><code>infra/cluster/traefik/</code> = <code>00-crds.yaml</code> (VENDORED pinned Traefik v3.2 CRDs, so a fresh box has them), <code>10-rbac.yaml</code> (ns <code>ingress</code> + SA + ClusterRole + Binding), <code>20-traefik.yaml</code> (Deployment, <code>kubernetescrd</code> watch-all, hostPort 80/443, tcpSocket probes). Plus <code>infra/cluster/dnsmasq.md</code> (one-line <code>address=/test/127.0.0.1</code> + kubeconfig note) and an idempotent <code>make cluster-init</code>.</p>
+        <h4>Validation</h4>
+        <p><code>kubectl apply --dry-run=server</code> passed for all CRDs + RBAC + Deployment against the real cluster (temp empty <code>ingress</code> ns created then deleted — cluster left untouched, <code>:80</code> never bound). Runtime Traefik config already proven by Task 2.</p>
+        <p class="meta-line"><strong>Deferred:</strong> the real <code>cluster-init</code> apply needs <code>:80</code> free → blocked on retiring the per-project Traefiks (Phase-2 cutover, <a href="#task-24">Task 24</a>). Prod variant swaps hostPort→LoadBalancer.</p>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-4">
+      <div class="task-head">
+        <div class="task-num">4</div>
+        <div class="task-title"><h3>Go <code>api</code> skeleton <a class="anchor" href="#task-4" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — TDD, prod image runtime-verified.</p>
+        <p><code>services/api/</code> (module <code>github.com/yenchieh/stackbase</code>). <code>cmd/server</code> (<code>newRouter</code> + thin <code>main</code>, fail-fast if <code>JWT_SECRET</code> unset, <code>ReadHeaderTimeout</code>). <code>internal/middleware</code>: <code>RequestID</code>, <code>Logging</code> (slog), <code>JWTValidate</code> (HS256, alg-pinned via <code>WithValidMethods</code>). <code>internal/handlers</code>: <code>Healthz</code> public, <code>Me</code> protected. <code>internal/respond</code> (<code>JSON</code>/<code>Error</code> → <code>{"error":msg}</code>). <code>Dockerfile</code> (distroless static nonroot) + <code>Dockerfile.dev</code> (CompileDaemon). 14 tests green; vet+gofmt clean.</p>
+        <h4>Decisions</h4>
+        <ul>
+          <li>Added <code>golang-jwt/jwt/v5</code> (security boundary — no hand-rolled crypto); jwt tests cover bad-signature / expired / <code>alg=none</code>.</li>
+          <li>Package <code>internal/handlers</code> + <code>internal/respond</code> instead of the spec's <code>internal/http</code> (a <code>package http</code> shadows stdlib).</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-5">
+      <div class="task-head">
+        <div class="task-num">5</div>
+        <div class="task-title"><h3>Postgres + migrate Job <a class="anchor" href="#task-5" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — live-validated.</p>
+        <p><code>infra/k8s/base/postgres.yaml</code> (Postgres 16 StatefulSet + headless Service, <code>microk8s-hostpath</code> PVC, <code>pg_isready</code> probes, password via <code>secretKeyRef</code>). <code>infra/k8s/base/migrate-job.yaml</code> (waits for pg, then <code>for f in /migrations/*.sql</code> with <code>ON_ERROR_STOP=1</code>). <code>db/migrations/0001_init.sql</code> (idempotent <code>demo_items</code>). <code>make migrate</code> regenerates the ConfigMap from the <strong>GLOB</strong>, never an explicit <code>files:</code> list, then delete+re-applies the immutable Job.</p>
+        <blockquote><p><strong>Footgun designed out — proven live:</strong> in a throwaway ns, run1 applied 0001; re-run was idempotent; then dropping a <code>0002_more.sql</code> into the dir and regenerating from the glob (NO list edited) auto-applied it. The exact failure mode that dropped nursing-call's migrations 027–029 cannot recur.</p></blockquote>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-6">
+      <div class="task-head">
+        <div class="task-num">6</div>
+        <div class="task-title"><h3>Vue frontend <a class="anchor" href="#task-6" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — prod image serves the SPA + fallback.</p>
+        <p><code>services/frontend/</code> (Vite 6 + Vue 3 + TS). <code>src/api.ts</code> (<code>getHealth</code>/<code>getMe</code>, TDD'd — 3 vitest cases: 200→claims, non-2xx→throw, bearer header sent). <code>src/App.vue</code> (health on mount + token→<code>/me</code>). <code>vite.config.ts</code> (<code>host:true</code>, <code>/api</code>→api proxy for standalone dev). <code>Dockerfile</code> (vite build → nginx + SPA fallback) + <code>Dockerfile.dev</code>. Prod deps: 0 audit vulns.</p>
+        <p class="meta-line"><strong>Note:</strong> frontend calls <code>/api/*</code>; Traefik strips <code>/api</code> in the integrated path (Task 7) while the Vite proxy strips it standalone.</p>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-7">
+      <div class="task-head">
+        <div class="task-num">7</div>
+        <div class="task-title"><h3>kustomize base + overlays/local <a class="anchor" href="#task-7" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — live-validated end-to-end.</p>
+        <p><code>base/</code> = <code>namespace</code> + <code>api</code> (Deploy+Svc) + <code>frontend</code> (Deploy+Svc) + <code>ingressroute</code> (Middleware <code>strip-api</code> + IngressRoute: <code>/api</code>→api stripped, <code>/</code>→frontend) + the Task-5 postgres/migrate. <code>overlays/local</code> sets <code>namespace: stackbase</code> (knob #1) and rewrites images → <code>localhost:32000/stackbase-{api,frontend}:dev</code>. <strong>Live deploy</strong> rolled out all three, migrate created <code>demo_items</code>, api <code>/healthz</code>→ok &amp; <code>/me</code>→401, frontend <code>/</code>→200. Torn down clean.</p>
+        <h4>Decisions</h4>
+        <ul>
+          <li>Unified one <code>app-secrets</code> Secret (<code>jwt-secret</code>, <code>postgres-password</code>).</li>
+          <li>Frontend container port <strong>5173 in both</strong> images → zero local↔prod port divergence, no overlay patch.</li>
+          <li>The two adopter knobs: <code>namespace:</code> (overlay) + <code>Host(`…test`)</code> (ingressroute).</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-8">
+      <div class="task-head">
+        <div class="task-num">8</div>
+        <div class="task-title"><h3>Tiltfile <a class="anchor" href="#task-8" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — live-validated full-stack hot-reload.</p>
+        <p><code>docker_build</code> for api (<code>live_update=sync(services/api→/app)</code>, CompileDaemon) + frontend (<code>sync(services/frontend/src→/app/src)</code>, Vite HMR); <code>k8s_yaml(kustomize(overlays/local))</code>; migrations ConfigMap via the GLOB; <code>port_forwards</code> 18080(fe)/18081(api). Image refs = the overlay's <code>localhost:32000/…</code> names, so no <code>default_registry</code>.</p>
+        <p><strong>Proven:</strong> <code>tilt up</code> → edit <code>.go</code> flipped <code>/healthz</code> <code>ok</code>→<code>reloaded</code> (CompileDaemon in-pod) AND edit <code>.vue</code> synced into the SAME frontend pod, no restart. Torn down clean; source reverted; api tests still green.</p>
+      </div>
+    </section>
+
+    <section class="task superseded reveal" id="task-9">
+      <div class="task-head">
+        <div class="task-num">9</div>
+        <div class="task-title"><h3>R2 object storage <a class="anchor" href="#task-9" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge superseded">Dropped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Dropped — owner decision, 2026-06-29.</p>
+        <p>Not built. <code>internal/r2</code>, <code>/uploads/presign</code>, and the Vue upload demo are out of scope. R2 scrubbed from CLAUDE.md / README / design spec.</p>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-10">
+      <div class="task-head">
+        <div class="task-num">10</div>
+        <div class="task-title"><h3>umami analytics <a class="anchor" href="#task-10" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — live-validated.</p>
+        <p><code>src/analytics.ts</code>: <code>umamiAttrs()</code> env gate (TDD'd — 3 vitest cases: both unset→null, one set→null, both→attrs) + <code>initAnalytics()</code> DOM shim, wired into <code>main.ts</code> (<code>VITE_UMAMI_*</code>; unset → no-op). <code>infra/k8s/shared/umami/</code> (ns <code>umami</code>, its own Postgres 16, umami Deploy+Svc with <code>DATABASE_URL</code> built from the secret, IngressRoute <code>umami.test</code>). <strong>Live deploy</strong>: db + umami rolled out (umami self-migrates on boot), <code>/</code> and <code>/api/heartbeat</code> → 200. Torn down clean.</p>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-11">
+      <div class="task-head">
+        <div class="task-num">11</div>
+        <div class="task-title"><h3>overlays/prod <a class="anchor" href="#task-11" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — validated.</p>
+        <p><code>overlays/prod/kustomization.yaml</code> over the same <code>base/</code>: images → <code>ghcr.io/yenchieh/stackbase-{api,frontend}:latest</code>, JSON6902 patch adding <code>imagePullPolicy: Always</code> to both app Deployments, same <code>app-secrets</code> refs. <code>kustomize build</code> renders; <code>apply --dry-run=server</code> accepted every resource; <code>diff local↔prod</code> shows the delta is ONLY image refs + <code>imagePullPolicy</code> → parity guarantee holds.</p>
+        <p class="meta-line"><strong>Left to the adopter</strong> (documented in the kustomization, not templated): real Host() domain, TLS (websecure + certResolver), <code>make secrets-apply</code> + <code>make migrate</code> on the prod context.</p>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-12">
+      <div class="task-head">
+        <div class="task-num">12</div>
+        <div class="task-title"><h3>Makefile + README polish <a class="anchor" href="#task-12" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — validated (incl. live <code>make secrets-apply</code>).</p>
+        <p><code>Makefile</code> base target set (<code>cluster-init</code>, <code>up</code>, <code>down</code>, <code>secrets-apply</code>, <code>apply</code>, <code>deploy</code>, <code>migrate</code>, <code>umami</code>) with <code>KUBECTL</code>/<code>NS</code> overrides + <code>help</code>. <code>secrets.env.example</code> + <code>services/frontend/.env.example</code>. README: quick start, the two-knobs table, make-targets table. Live <code>make secrets-apply</code> created <code>app-secrets</code> with correctly-mapped keys; <code>secrets.env</code> confirmed gitignored.</p>
+        <blockquote><p><strong>Phase 1 done =</strong> <code>make cluster-init</code> → use-template → <code>make up</code> → edit Go <em>and</em> Vue live at <code>http://&lt;name&gt;.test</code>, prod overlay deploys by hand.</p></blockquote>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-13">
+      <div class="task-head">
+        <div class="task-num">13</div>
+        <div class="task-title"><h3>U1 · Prod Postgres backup + restore <a class="anchor" href="#task-13" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — the single most-duplicated asset across all four donor projects.</p>
+        <p><code>infra/k8s/overlays/prod/backup/</code> = pinned+sha256 <code>mc</code> Dockerfile (postgres:16-alpine), <code>backup_script.sh</code> (pg_dump -Fc → MinIO, retention prune, Discord alert), <code>restore_script.sh</code> (operator kubectl-cp + pg_restore), <code>cronjob.yaml</code> (every 12h, <code>concurrencyPolicy: Forbid</code>). Script mounted via <code>configMapGenerator</code> (<code>disableNameSuffixHash</code>) so editing it needs no image rebuild. MinIO/Discord keys OPTIONAL in <code>app-secrets</code> (<code>secretKeyRef.optional:true</code>). Backup image uses a <strong>bare <code>stackbase-backup</code> name in the prod <code>images:</code> list</strong> (post-review fix) so <code>GH_OWNER</code> retags it like api/frontend. Rendered clean via <code>kubectl kustomize overlays/prod</code>.</p>
+        <p class="meta-line"><strong>Donors:</strong> all four ship a near-identical CronJob; best copies <code>manyi/…/prod/backup/</code>, <code>nursing-call/…/production/backup/</code>, and diagramzu's pinned+sha256 <code>mc</code> Dockerfile.</p>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-14">
+      <div class="task-head">
+        <div class="task-num">14</div>
+        <div class="task-title"><h3>U2 · Pinned prod deploys + guard rails <a class="anchor" href="#task-14" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done.</p>
+        <p>Makefile <code>prod-build</code>/<code>prod-push</code> (api+frontend+backup, <code>:latest</code>+<code>:&lt;git-sha&gt;</code> → <code>$(REGISTRY)</code>); <code>deploy</code> renders <code>overlays/prod</code>, <strong>refuses on placeholder hits</strong> (<code>change-me|replace-me|TODO|&lt;[A-Z_]+&gt;</code>), then applies at <code>:$(TAG)</code>. <code>_guard-local-context</code> prereq on <code>apply</code> verifies the kube API server is this machine/a private address (escape: <code>GUARD_OK=1</code>). <code>PROD_KUBECONFIG ?=</code> knob.</p>
+        <h4>Post-review fix</h4>
+        <p><code>TAG</code> defaults to <code>latest</code> so a <em>standalone</em> <code>make deploy</code> ships the always-pullable tag (no more pinning to an unpushed/tarball SHA); <code>prod-deploy</code> = build+push then <code>deploy TAG=$(SHA)</code> for an immutable, rollback-able release.</p>
+        <blockquote><p><strong>Owner decision (2026-07-08): keep <code>prod-build</code>/<code>prod-push</code></strong> — they're the manual pre-CI build/push path (isolated in <code>prod-deploy</code>); Phase-2 CI (<a href="#task-22">Task 22</a>) just automates them, it doesn't replace them.</p></blockquote>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-15">
+      <div class="task-head">
+        <div class="task-num">15</div>
+        <div class="task-title"><h3>U3 · Day-2 ops make targets <a class="anchor" href="#task-15" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — komiic + nursing-call converged on this same kubectl wrapper vocabulary.</p>
+        <p>Added <code>status</code> (pods/svc/ingressroute), <code>logs SERVICE=</code>, <code>shell SERVICE=</code>, <code>restart [SERVICE=]</code>, <code>port-forward SERVICE= LOCAL= REMOTE=</code>, <code>events</code>, <code>validate</code> (render + <code>apply --dry-run=server</code>, <code>OVERLAY=</code>), <code>diff</code> (<code>kubectl diff -k</code>), <code>health</code> (curl <code>$(HEALTH_URL)</code> expect 200; the 401-as-routing-proof trick noted in a comment). All show in <code>make help</code>.</p>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-16">
+      <div class="task-head">
+        <div class="task-num">16</div>
+        <div class="task-title"><h3>U4 · Prod PVC data-loss insurance <a class="anchor" href="#task-16" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — verified via render.</p>
+        <p><code>overlays/prod/storageclass-retain.yaml</code> (<code>stackbase-hostpath-retain</code>, <code>provisioner: microk8s.io/hostpath</code>, <code>reclaimPolicy: Retain</code>) + JSON6902 patch repointing the postgres <code>volumeClaimTemplate</code> storageClassName in prod only (local stays <code>microk8s-hostpath</code>) so <code>kubectl delete -k</code> can't wipe the DB.</p>
+        <p class="meta-line"><strong>Note baked into the manifest:</strong> storageClassName is immutable on an existing PVC, so it must be set on the FIRST prod deploy.</p>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-17">
+      <div class="task-head">
+        <div class="task-num">17</div>
+        <div class="task-title"><h3>U5 · Graceful-secrets convention <a class="anchor" href="#task-17" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done.</p>
+        <p>Demonstrated by the backup CronJob (<code>optional: true</code> MinIO/Discord refs) so pods boot pre-provisioning and features degrade (vs <code>CreateContainerConfigError</code>). Documented adopter-facing: <code>secrets.env.example</code> (required vs optional keys), README "Secrets &amp; config conventions", and a matching reminder printed by <code>make secrets-apply</code>.</p>
+        <blockquote><p><strong>Shared gotcha (manyi + nursing-call):</strong> a secret/config-only change does NOT roll pods → <code>make restart</code> to pick up new values.</p></blockquote>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-18">
+      <div class="task-head">
+        <div class="task-num">18</div>
+        <div class="task-title"><h3>U6 · Tiltfile hardening <a class="anchor" href="#task-18" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — verified (local=1Gi, prod=512Mi, no cpu limit; Tiltfile passes <code>tilt alpha tiltfile-result</code>).</p>
+        <p>Added <code>fall_back_on(['services/api/go.mod','go.sum'])</code> and <code>fall_back_on(['services/frontend/package.json','package-lock.json'])</code> so a dep change forces a real image rebuild instead of syncing a broken graph. Added a lean <code>resources</code> block to <code>base/api.yaml</code> (req cpu 50m/64Mi, <strong>memory-only limit 512Mi — NO cpu limit</strong>, post-review fix so a CPU cap can't throttle the in-pod <code>go build</code>) and a <strong>local-overlay patch raising the memory limit to 1Gi</strong> so the CompileDaemon compile doesn't OOM (prod keeps 512Mi).</p>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-19">
+      <div class="task-head">
+        <div class="task-num">19</div>
+        <div class="task-title"><h3>U7 · Seed-data slot <a class="anchor" href="#task-19" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — builds, vets, all api tests green.</p>
+        <p><code>services/api/cmd/seed/main.go</code>: idempotent Go CLI (<code>database/sql</code> + <code>lib/pq</code>, added as a direct dep), inserts a deterministic demo set into <code>demo_items</code> via <code>INSERT … WHERE NOT EXISTS</code> (re-runnable). Reads <code>DATABASE_URL</code> (localhost dev fallback). <code>make seed</code> = host <code>go run ./cmd/seed</code>; <code>make k8s-seed</code> execs the dev api pod. Idempotency check = run <code>make seed</code> twice (2nd run reports "0 inserted").</p>
+      </div>
+    </section>
+
+    <section class="task shipped reveal" id="task-20">
+      <div class="task-head">
+        <div class="task-num">20</div>
+        <div class="task-title"><h3>U8 · Patterns doc + AGENTS.md <a class="anchor" href="#task-20" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge shipped">Shipped</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Done — capture the non-core recipes as docs, not code.</p>
+        <p><code>docs/patterns.md</code> (off-cluster GPU via Cloudflare Tunnel, multi-binary Go image reused by a CronJob, Alertmanager→chat-webhook paging, umami two-phase bootstrap — each as shape + where-to-copy, explicitly "don't pre-build") and <code>AGENTS.md</code> (vendor-neutral agent contract: per-service + ops commands, Go/migration/kustomize/secrets style, commit prefixes incl. <code>deploy(k8s):</code>, and the PR rule to flag migration/secret/k8s impacts).</p>
+      </div>
+    </section>
+
+    <section class="task planned reveal" id="task-21">
+      <div class="task-head">
+        <div class="task-num">21</div>
+        <div class="task-title"><h3>gRPC — proto + <code>buf</code> + a second service <a class="anchor" href="#task-21" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge planned">Planned</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Planned (Phase 2) — its own small spec.</p>
+        <p>proto + <code>buf</code> codegen + a second service (topology TBD: Go↔Go vs connect/grpc-web).</p>
+        <p class="meta-line"><strong>Audit input:</strong> nursing-call's shared-module recipe works today — <code>go.work</code> + per-module <code>replace ../platform</code>, <code>GOWORK=off</code> in Docker, build context = <code>services/</code>; komiic scales the same idea to 26 modules. Pairs with the multi-service <code>base/</code> layout that a diagramzu adoption would drive.</p>
+      </div>
+    </section>
+
+    <section class="task planned reveal" id="task-22">
+      <div class="task-head">
+        <div class="task-num">22</div>
+        <div class="task-title"><h3>Prod CI — automate GHCR build/push <a class="anchor" href="#task-22" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge planned">Planned</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Planned (Phase 2).</p>
+        <p><strong>Automate</strong> the GHCR build/push + secret bootstrap. The <em>manual</em> build/push path already landed in <a href="#task-14">Task 14</a> (<code>make prod-build</code>/<code>prod-push</code>, <code>:latest</code>+<code>:&lt;sha&gt;</code>); CI's job is only to run it on push, not to invent it.</p>
+        <p class="meta-line"><strong>Shape to copy:</strong> komiic is the only donor with CI — a reusable <code>_go-service.yml</code> workflow + ~15-line per-service callers, path-filtered on <code>services/&lt;name&gt;/**</code> AND the shared lib, plus one workspace-wide vet/build safety net. CI builds+pushes images only; humans still apply manifests via <code>make deploy</code> / <code>prod-deploy</code>.</p>
+      </div>
+    </section>
+
+    <section class="task planned reveal" id="task-23">
+      <div class="task-head">
+        <div class="task-num">23</div>
+        <div class="task-title"><h3>Full auth / user module <a class="anchor" href="#task-23" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge planned">Planned</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Planned (Phase 2).</p>
+        <p>Login, users table, password reset (the <code>platform</code>-style library). Phase 1 ships JWT-<em>validate</em> middleware only — the pattern, not a product.</p>
+      </div>
+    </section>
+
+    <section class="task planned reveal" id="task-24">
+      <div class="task-head">
+        <div class="task-num">24</div>
+        <div class="task-title"><h3>Migrate existing projects onto the shared Traefik <a class="anchor" href="#task-24" aria-label="Link to this task">#</a></h3></div>
+        <span class="badge planned">Planned</span>
+      </div>
+      <div class="content">
+        <p class="meta-line"><strong>Status:</strong> Planned (Phase 2) — the load-bearing cutover.</p>
+        <p>Now <strong>four</strong> cutovers, each retiring a different per-project hack: nursing-call (NodePort 31080 + host Caddy on :80), manyi (NodePort 31278 + host Caddy), diagramzu (MetalLB LoadBalancer + manual <code>/etc/hosts</code>), komiic (hostPort 80/443 + nodeSelector pin + interactive <code>/etc/hosts</code> script).</p>
+        <p><strong>Retiring these frees <code>:80</code></strong> → unblocks the deferred live <code>make cluster-init</code> apply (<a href="#task-3">Task 3</a>). The reusable adoption prompt lives at <code>docs/adopt-prompt.md</code>; the read-once mechanics at <code>docs/ADOPTING.md</code>.</p>
+      </div>
+    </section>
+
+    </div><!-- /.tasks -->
+
+    <div class="section-head" id="phase15">
+      <div class="k">Reference</div>
+      <h2>Phase 1.5 — audit provenance</h2>
+    </div>
+    <div class="content">
+      <p>Tasks 13–20 (U1–U8) came from parallel audits (2026-07-07) of four sibling projects: <strong>komiic</strong> (<code>~/go/src/github.com/yenchieh/komiic</code>), <strong>manyi</strong> (<code>~/code/manyi</code>), <strong>diagramzu</strong> (<code>~/code/mermaid</code>), <strong>nursing-call</strong> (<code>~/code/nursing-call</code>). Ranked by how many projects independently carry each pattern — highest duplication first.</p>
+      <p>stackbase already fixed the big shared pains — per-project Traefik + NodePort/Caddy/MetalLB/hostPort hacks, <code>/etc/hosts</code> edits, hostPath hot-reload, explicit migration <code>files:</code> lists, build-time analytics baking. U1–U8 are the patterns it <em>missed</em>: prod backup, pinned deploys + guards, day-2 ops, Retain PVC, graceful secrets, Tiltfile hardening, seed data, and the patterns/AGENTS docs.</p>
+    </div>
+
+    <div class="section-head" id="gates">
+      <div class="k">Reference</div>
+      <h2>Phase gates</h2>
+    </div>
+    <div class="content">
+      <ul>
+        <li><strong>Phase 1 done</strong> (Tasks 0–12): <code>make cluster-init</code> → use-template → <code>make up</code> → edit Go <em>and</em> Vue live at <code>http://&lt;name&gt;.test</code>; prod overlay deploys by hand. <span class="check">✓</span></li>
+        <li><strong>Phase 1.5 done</strong> (Tasks 13–20): the cross-project deployment/ops patterns are absorbed, reviewed, and committed. <span class="check">✓</span></li>
+        <li><strong>Phase 2</strong> (Tasks 21–24): each is its own small spec; the shared-Traefik cutover (<a href="#task-24">Task 24</a>) is the prerequisite still unproven live, and it frees <code>:80</code> for <a href="#task-3">Task 3</a>'s deferred apply.</li>
+      </ul>
+    </div>
+
+    <footer class="footer">
+      <span>Self-contained snapshot of the stackbase build roadmap. Source of truth for build progress.</span>
+      <a class="to-top" href="#top">↑ Back to top</a>
+    </footer>
+  </main>
+</div>
+
+<script>
+  /* ── Single source of truth: tasks + statuses ───────────────── */
+  const TASKS = [
+    {n:0,  s:'shipped',    t:'Project scaffold'},
+    {n:1,  s:'shipped',    t:'SPIKE — Tilt live-reload on MicroK8s'},
+    {n:2,  s:'shipped',    t:'SPIKE — shared Traefik ingress'},
+    {n:3,  s:'shipped',    t:'Cluster bootstrap'},
+    {n:4,  s:'shipped',    t:'Go api skeleton'},
+    {n:5,  s:'shipped',    t:'Postgres + migrate Job'},
+    {n:6,  s:'shipped',    t:'Vue frontend'},
+    {n:7,  s:'shipped',    t:'kustomize base + overlays/local'},
+    {n:8,  s:'shipped',    t:'Tiltfile'},
+    {n:9,  s:'superseded', t:'R2 object storage — dropped'},
+    {n:10, s:'shipped',    t:'umami analytics'},
+    {n:11, s:'shipped',    t:'overlays/prod'},
+    {n:12, s:'shipped',    t:'Makefile + README polish'},
+    {n:13, s:'shipped',    t:'U1 · Prod Postgres backup + restore'},
+    {n:14, s:'shipped',    t:'U2 · Pinned prod deploys + guard rails'},
+    {n:15, s:'shipped',    t:'U3 · Day-2 ops make targets'},
+    {n:16, s:'shipped',    t:'U4 · Prod PVC data-loss insurance'},
+    {n:17, s:'shipped',    t:'U5 · Graceful-secrets convention'},
+    {n:18, s:'shipped',    t:'U6 · Tiltfile hardening'},
+    {n:19, s:'shipped',    t:'U7 · Seed-data slot'},
+    {n:20, s:'shipped',    t:'U8 · Patterns doc + AGENTS.md'},
+    {n:21, s:'planned',    t:'gRPC — proto + buf + a second service'},
+    {n:22, s:'planned',    t:'Prod CI — automate GHCR build/push'},
+    {n:23, s:'planned',    t:'Full auth / user module'},
+    {n:24, s:'planned',    t:'Migrate existing projects onto shared Traefik'},
+  ];
+  const META = [
+    {id:'phase15', t:'Phase 1.5 — audit provenance'},
+    {id:'gates',   t:'Phase gates'},
+  ];
+  const STATUS_LABEL = { shipped:'Shipped', progress:'In progress', planned:'Planned', superseded:'Superseded' };
+
+  /* ── Build sidebar nav (grouped by status) ──────────────────── */
+  (function buildNav(){
+    const groups = [
+      {key:'progress',   label:'In progress'},
+      {key:'planned',    label:'Planned'},
+      {key:'shipped',    label:'Shipped'},
+      {key:'superseded', label:'Superseded'},
+    ];
+    const nav = document.getElementById('nav-list');
+    let html = '';
+    for (const g of groups) {
+      const items = TASKS.filter(t => t.s === g.key);
+      if (!items.length) continue;
+      html += `<div class="nav-group">${g.label}<span class="count">${items.length}</span></div>`;
+      for (const t of items) {
+        html += `<a href="#task-${t.n}"><span class="dot ${t.s}"></span><span class="n">${t.n}</span><span class="t">${t.t}</span></a>`;
+      }
+    }
+    html += `<div class="nav-group">Reference</div>`;
+    for (const m of META) html += `<a href="#${m.id}"><span class="dot planned" style="background:var(--color-primary)"></span><span class="n">·</span><span class="t">${m.t}</span></a>`;
+    nav.innerHTML = html;
+  })();
+
+  /* ── Build progress panel ───────────────────────────────────── */
+  (function buildProgress(){
+    const counts = { shipped:0, progress:0, planned:0, superseded:0 };
+    TASKS.forEach(t => counts[t.s]++);
+    // Superseded = abandoned/replaced work, archived for history. Excluded from
+    // the shipped-% denominator and the progress bar (which otherwise wouldn't sum to 100%).
+    const active = TASKS.length - counts.superseded;
+    const pct = Math.round((counts.shipped / active) * 100);
+
+    const pctEl = document.getElementById('pct');
+    let cur = 0;
+    const tick = () => { cur += Math.max(1, Math.round((pct - cur) / 6)); if (cur >= pct) cur = pct; pctEl.textContent = cur; if (cur < pct) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+
+    const bar = document.getElementById('progress-bar');
+    bar.innerHTML = ['shipped','progress','planned'].map(k =>
+      counts[k] ? `<div class="seg ${k}" style="width:${(counts[k]/active)*100}%" title="${STATUS_LABEL[k]}: ${counts[k]}"></div>` : ''
+    ).join('');
+
+    const legendKeys = ['shipped','progress','planned'];
+    if (counts.superseded) legendKeys.push('superseded');
+    const legend = document.getElementById('progress-legend');
+    legend.innerHTML = legendKeys.map(k =>
+      `<span><span class="dot ${k}"></span>${STATUS_LABEL[k]} · ${counts[k]}</span>`
+    ).join('');
+
+    const tileDefs = [
+      {k:'shipped',  lbl:'tasks shipped'},
+      {k:'progress', lbl:'in progress'},
+      {k:'planned',  lbl:'planned / backlog'},
+    ];
+    if (counts.superseded) tileDefs.push({k:'superseded', lbl:'superseded'});
+    const tiles = document.getElementById('stat-tiles');
+    tiles.innerHTML = tileDefs.map(x => `<div class="tile ${x.k}"><div class="num">${counts[x.k]}</div><div class="lbl"><span class="dot ${x.k}"></span>${x.lbl}</div></div>`).join('');
+  })();
+
+  /* ── Theme toggle ───────────────────────────────────────────── */
+  (function theme(){
+    const buttons = document.querySelectorAll('.theme-toggle button');
+    function apply(theme){
+      document.documentElement.dataset.theme = theme;
+      document.querySelectorAll('.theme-toggle button').forEach(b => b.classList.toggle('active', b.dataset.setTheme === theme));
+      localStorage.setItem('sb-roadmap-theme', theme);
+    }
+    buttons.forEach(b => b.addEventListener('click', () => apply(b.dataset.setTheme)));
+    const saved = localStorage.getItem('sb-roadmap-theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    apply(saved || (prefersDark ? 'dark' : 'light'));
+  })();
+
+  /* ── Reading progress + active-section nav highlight ────────── */
+  (function scrollFx(){
+    const progress = document.getElementById('reading-progress');
+    function onScroll(){
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      progress.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+    }
+    document.addEventListener('scroll', onScroll, {passive:true});
+    onScroll();
+
+    const links = Array.from(document.querySelectorAll('#nav-list a'));
+    const byId = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const a = byId.get(e.target.id);
+          if (a) { a.classList.add('active'); a.scrollIntoView({block:'nearest'}); }
+        }
+      });
+    }, {rootMargin:'-10% 0px -75% 0px', threshold:0});
+    document.querySelectorAll('.task, .section-head[id]').forEach(el => obs.observe(el));
+  })();
+</script>
+</body>
+</html>

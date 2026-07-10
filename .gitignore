@@ -20,3 +20,6 @@ dist/
 
 # stray Go binaries from `go build ./cmd/...`
 /services/api/seed
+
+# JetBrains IDE
+.idea/

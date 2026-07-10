@@ -54,9 +54,10 @@ make prod-deploy      # build + push (:latest + :<sha>) then pinned apply
   - **secret/config change** — reminder that it needs `make secrets-apply` + `make restart`
     (a secret change does NOT roll pods on its own);
   - **k8s manifest change** — which overlay(s), and whether it's been `make validate`'d.
-- Roadmap: `ROADMAP.md` is gitignored/local-only — flip a task to 🚧 when you start and
-  ✅ when done. Because it's untracked, the commit-gate hook fails open here (no
-  `[skip-roadmap]` token needed).
+- Roadmap: `docs/roadmap.html` is tracked in git — flip a task's status to `progress`
+  when you start and `shipped` when done, editing BOTH the `TASKS` array entry and the
+  `<section>`/`<span class="badge">` for that card. The commit-gate hook enforces here:
+  every commit must touch `docs/roadmap.html` or carry a `[skip-roadmap]` token.
 
 ## Don't build these yet
 

@@ -67,4 +67,4 @@ snippet needs doesn't exist until umami is up. So it's inherently two-phase:
 ---
 
 Anything here graduates to real code the day you actually need it — at which point
-add it to `ROADMAP.md` as its own task and delete its entry from this file.
+add it to `docs/roadmap.html` as its own task and delete its entry from this file.
